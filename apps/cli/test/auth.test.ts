@@ -21,13 +21,13 @@ if (!posix)
         );
         expect(auth).toMatchObject({ code: 0, stderr: "" });
         expect(
-          JSON.parse(await readFile(join(env.APPDATA, "codecompass/credentials.json"), "utf8")),
+          JSON.parse(await readFile(join(env.APPDATA, "devgrep/credentials.json"), "utf8")),
         ).toEqual({
           provider: "vercel",
           apiKey: "profile-secret",
         });
-        await mkdir(join(env.LOCALAPPDATA, "codecompass"), { recursive: true });
-        await writeFile(join(env.LOCALAPPDATA, "codecompass/answer.json"), "cached answer");
+        await mkdir(join(env.LOCALAPPDATA, "devgrep"), { recursive: true });
+        await writeFile(join(env.LOCALAPPDATA, "devgrep/answer.json"), "cached answer");
         await writeFile(join(home, "visible.py"), "def visible(): pass\n");
         const inventory = await run(
           [
@@ -42,7 +42,7 @@ if (!posix)
           env,
         );
         expect(inventory).toMatchObject({ code: 0, stderr: "" });
-        expect(inventory.stdout).toContain("CodeCompass files: 1 file eligible");
+        expect(inventory.stdout).toContain("devgrep files: 1 file eligible");
         expect(inventory.stdout).toContain('"protected" 2');
       });
     },
@@ -55,14 +55,14 @@ testInDocker("installed auth saves privately, bounds stdin, and never echoes key
     expect(saved.stderr).toBe("");
     expect(saved.stdout).toContain("key saved");
     expect(saved.stdout).not.toContain("test-gateway-secret");
-    const file = join(home, "codecompass", "credentials.json");
+    const file = join(home, "devgrep", "credentials.json");
     expect(JSON.parse(await readFile(file, "utf8"))).toEqual({
       provider: "vercel",
       apiKey: "test-gateway-secret",
     });
     if (posix) {
       expect((await stat(file)).mode & 0o777).toBe(0o600);
-      expect((await stat(join(home, "codecompass"))).mode & 0o777).toBe(0o700);
+      expect((await stat(join(home, "devgrep"))).mode & 0o777).toBe(0o700);
     }
     const whitespace = await run(["auth", "--provider", "vercel", "--stdin"], "two secrets\n");
     expect(whitespace.code).toBe(1);
@@ -117,7 +117,7 @@ testInDocker(
         expect(auth.stdout).toContain(`Custom endpoint (127.0.0.1:${server.port})`);
         expect(auth.stdout).toContain("key saved");
         expect(auth.stdout).not.toContain(key);
-        const file = join(home, "codecompass", "credentials.json");
+        const file = join(home, "devgrep", "credentials.json");
         expect(JSON.parse(await readFile(file, "utf8"))).toEqual({
           provider: "custom",
           baseURL,
@@ -126,7 +126,7 @@ testInDocker(
         });
         if (posix) {
           expect((await stat(file)).mode & 0o777).toBe(0o600);
-          expect((await stat(join(home, "codecompass"))).mode & 0o777).toBe(0o700);
+          expect((await stat(join(home, "devgrep"))).mode & 0o777).toBe(0o700);
         }
         expect(requests).toHaveLength(0);
 
@@ -149,7 +149,7 @@ testInDocker(
 
 testInDocker("custom auth rejects insecure or incomplete endpoints before saving", async () => {
   await withCli(async ({ home, run }) => {
-    const file = join(home, "codecompass", "credentials.json");
+    const file = join(home, "devgrep", "credentials.json");
     for (const [args, expected] of [
       [
         [
@@ -217,7 +217,7 @@ testInDocker(
   "doctor rejects a persisted custom endpoint that violates the transport rule",
   async () => {
     await withCli(async ({ home, run }) => {
-      const directory = join(home, "codecompass");
+      const directory = join(home, "devgrep");
       await mkdir(directory, { recursive: true, mode: 0o700 });
       await writeFile(
         join(directory, "credentials.json"),

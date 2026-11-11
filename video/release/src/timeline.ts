@@ -101,12 +101,12 @@ export const COIN_DROPS = Array.from({ length: 12 }, (_, k) => COST.start + 0.05
 export const INSTALL = {
   iris: 15.65, // dark terminal grows out of the tower
   lines: [
-    { text: 'npm install -g @codecompass/cli', t: 16.4, cps: 42 },
-    { text: 'cc auth', t: 17.3, cps: 30 },
-    { text: 'cc skill', t: 17.75, cps: 30 },
-    { text: 'cc "How are telemetry events recorded and sent?" .', t: 18.2, cps: 48 },
+    { text: 'npm install -g devgrep', t: 16.4, cps: 42 },
+    { text: 'dg auth', t: 17.3, cps: 30 },
+    { text: 'dg skill', t: 17.75, cps: 30 },
+    { text: 'dg "How are telemetry events recorded and sent?" .', t: 18.2, cps: 48 },
   ],
-  fold: 19.5, // terminal folds into the cc chip
+  fold: 19.5, // terminal folds into the dg chip
   wordmark: 20.0,
   dotLand: 20.5,
 };

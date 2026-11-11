@@ -1,6 +1,6 @@
-# CodeCompass architecture
+# devgrep architecture
 
-CodeCompass retrieves evidence for a coding agent. Jev classifies repository content;
+devgrep retrieves evidence for a coding agent. Jev classifies repository content;
 the caller owns explanations, implementation, and verification. Retrieved source
 is data, never instructions.
 
@@ -78,7 +78,7 @@ Reading priority depends on the query, ancestor folders and content preview.
 Folder names are clues rather than hard exclusions: specs may lead for design
 questions, while implementation queries generally favor executable code.
 
-The [public skill](../skills/codecompass/SKILL.md) owns installation and agent usage.
+The [public skill](../skills/devgrep/SKILL.md) owns installation and agent usage.
 The skill explains invocation and output semantics; the calling agent owns its
 research, implementation and testing workflow. The CLI returns source evidence
 and repository instruction locations without synthesizing test commands.

@@ -8,7 +8,7 @@ import { repositoryContext } from "../src/repository-context";
 import type { FileEvidence } from "../src/types";
 
 test("repository context reports scoped guidance and marks excluded instructions incomplete", async () => {
-  const root = await mkdtemp(join(tmpdir(), "cc-context-"));
+  const root = await mkdtemp(join(tmpdir(), "devgrep-context-"));
   await mkdir(join(root, "a/b"), { recursive: true });
   await mkdir(join(root, "unrelated"));
   for (const path of ["AGENTS.md", "a/AGENTS.md", "a/b/AGENTS.md", "unrelated/AGENTS.md"])

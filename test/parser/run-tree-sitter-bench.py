@@ -17,7 +17,7 @@ if not commit.startswith("2dc1d3c"):
 subprocess.run(["git", "diff", "--quiet", "HEAD", "--"], cwd=baseline, check=True)
 images = {}
 for arm, root in [("before", baseline), ("after", candidate)]:
-    image = "codecompass-tree-bench-" + arm
+    image = "devgrep-tree-bench-" + arm
     subprocess.run(["docker", "build", "-q", "-f", "test/Dockerfile", "-t", image, "."], cwd=root, stdout=sys.stderr, check=True, timeout=600)
     images[arm] = subprocess.check_output(["docker", "image", "inspect", image, "--format", "{{.Id}}"], text=True).strip()
 metadata = {"baseline": commit, "images": images, "sourceSHA256": {str(p.relative_to(candidate)): hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted((candidate / "packages/core/src").iterdir()) if p.is_file()}, "node": "22 (image)", "cpus": 2, "memory": "2g"}

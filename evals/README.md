@@ -6,12 +6,12 @@ runs separately identified. The [architecture](../docs/architecture.md) records
 the retrieval principles; saved no-Jev results provide additional context.
 
 The maintained [installed-package harness](implementation/swebench/installed.md)
-drives the actual `cc` executable with Sol and reuses the fixed baselines.
+drives the actual `dg` executable with Sol and reuses the fixed baselines.
 It supports a single-task checkpoint or a complete ten-task cohort, preserving raw
 Jev requests/responses, coding-agent actions, patches, official grades and bills.
 
 A baseline is immutable per task/model/harness and is never rerun to improve a
-comparison. The benchmark requires initial CodeCompass use to isolate retrieval's
+comparison. The benchmark requires initial devgrep use to isolate retrieval's
 effect, while the production skill remains selective. Agents may fill remaining
 context gaps with ordinary tools.
 

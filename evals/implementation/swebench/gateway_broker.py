@@ -29,10 +29,10 @@ class Server(socketserver.ThreadingTCPServer):
  daemon_threads=True
 # Only this separate, non-agent container ever receives the real gateway key.
 import http.server,http.client,urllib.request,urllib.error,urllib.parse,pathlib,time,hmac
-CONFIG_PATH=os.environ.get('CODECOMPASS_GATEWAY_CONFIG','/run/gateway.json')
+CONFIG_PATH=os.environ.get('DEVGREP_GATEWAY_CONFIG','/run/gateway.json')
 GATEWAY_ORIGIN='https://ai-gateway.vercel.sh'
 TYPESAFE_ORIGIN='https://api.typesafe.ai'
-TRACE_DIR=os.environ.get('CODECOMPASS_TRACE_DIR')
+TRACE_DIR=os.environ.get('DEVGREP_TRACE_DIR')
 def capture_jev(request_id,data):
  if not TRACE_DIR:return None
  directory=pathlib.Path(TRACE_DIR);directory.mkdir(mode=0o700,parents=True,exist_ok=True)
@@ -79,7 +79,7 @@ class Gateway(http.server.BaseHTTPRequestHandler):
    jev_path='/v1/systemone' if native else '/typesafe/v1/systemone'
    jev_origin=TYPESAFE_ORIGIN if native else GATEWAY_ORIGIN
    jev_model='jev-1.13.0' if native else 'typesafe-ai/jev'
-   jev=self.path==jev_path and self.headers.get('x-codecompass-original-url')==('https://api.typesafe.ai/v1/systemone' if native else 'https://ai-gateway.vercel.sh/typesafe/v1/systemone')
+   jev=self.path==jev_path and self.headers.get('x-devgrep-original-url')==('https://api.typesafe.ai/v1/systemone' if native else 'https://ai-gateway.vercel.sh/typesafe/v1/systemone')
    if jev and config.get('allow_jev') is not True:self.send_error(403);return
    if not (claude or codex or jev):self.send_error(403);return
    size=int(self.headers.get('Content-Length','0'))

@@ -20,9 +20,9 @@ export function releaseIdentity(metadata, tag) {
   if (version === "0.0.0")
     throw new Error("Set an intentional release version; 0.0.0 is a development checkpoint");
   if (tag !== `v${version}`) throw new Error("Tag must equal v plus the CLI package version");
-  if (metadata.name !== "@codecompass/cli") throw new Error("Release package must be @codecompass/cli");
-  if (metadata.bin?.cc !== "./dist/bin/index.js" || Object.keys(metadata.bin).length !== 1)
-    throw new Error("Release must expose only the cc executable");
+  if (metadata.name !== "devgrep") throw new Error("Release package must be devgrep");
+  if (metadata.bin?.devgrep !== "./dist/bin/index.js" || metadata.bin?.dg !== "./dist/bin/index.js" || Object.keys(metadata.bin).length !== 2)
+    throw new Error("Release must expose exactly the devgrep and dg executables");
   if (metadata.private || metadata.publishConfig?.access !== "public")
     throw new Error("Release package must be public");
   if (metadata.license !== "MIT" || metadata.engines?.node !== ">=22")
@@ -48,7 +48,7 @@ export async function validateRelease(tarball, tag, root = repository) {
   if (new Set(files).size !== files.length) throw new Error("Duplicate archive entries");
   for (const path of files)
     if (
-      !/^package\/(?:package\.json|README(?:\.md)?|LICENSE|dist\/(?:bin\/(?:index\.js|parser-(?:worker|helpers|preview|declarations)\.mjs)|assets\/(?:README\.md)|skills\/codecompass\/SKILL\.md|LICENSE|THIRD_PARTY_NOTICES\.txt))$/.test(
+      !/^package\/(?:package\.json|README(?:\.md)?|LICENSE|dist\/(?:bin\/(?:index\.js|parser-(?:worker|helpers|preview|declarations)\.mjs)|assets\/(?:README\.md)|skills\/devgrep\/SKILL\.md|LICENSE|THIRD_PARTY_NOTICES\.txt))$/.test(
         path,
       ) &&
       !grammars.some((name) => path === `package/dist/assets/tree-sitter/tree-sitter-${name}.wasm`)
@@ -76,7 +76,7 @@ export async function validateRelease(tarball, tag, root = repository) {
     throw new Error("Packed executable must run in Node");
   for (const [packed, original] of [
     ["dist/LICENSE", "LICENSE"],
-    ["dist/skills/codecompass/SKILL.md", "skills/codecompass/SKILL.md"],
+    ["dist/skills/devgrep/SKILL.md", "skills/devgrep/SKILL.md"],
     ...["parser-worker", "parser-helpers", "parser-preview", "parser-declarations"].map((name) => [
       `dist/bin/${name}.mjs`,
       `packages/core/src/${name}.mjs`,

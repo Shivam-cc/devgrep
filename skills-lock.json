@@ -1,8 +1,8 @@
 {
   "version": 1,
   "skills": {
-    "codecompass": {
-      "source": "Shivam-cc/Code-Compass",
+    "devgrep": {
+      "source": "Shivam-cc/devgrep",
       "sourceType": "github",
       "computedHash": "1c4cf35c423527c02250acb7cc7d1ce5b59682fdcb202af2063a28844214b431"
     },

@@ -6,7 +6,7 @@ export async function installSkill(
   command: Extract<Command, { kind: "skill" }>,
   signal: AbortSignal,
 ): Promise<number> {
-  const args = ["--yes", "skills", "add", "Shivam-cc/Code-Compass", "--skill", "codecompass"];
+  const args = ["--yes", "skills", "add", "Shivam-cc/devgrep", "--skill", "devgrep"];
   for (const agent of command.agents) args.push("--agent", agent);
   if (command.global) args.push("--global");
   if (command.yes) args.push("--yes");
@@ -24,7 +24,7 @@ export async function installSkill(
     child.once("error", (error: NodeJS.ErrnoException) =>
       reject(
         error.code === "ENOENT"
-          ? new CliError("Skill installation requires npx. Install npm, then run cc skill again.")
+          ? new CliError("Skill installation requires npx. Install npm, then run dg skill again.")
           : error,
       ),
     );

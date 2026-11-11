@@ -493,7 +493,7 @@ test("custom cache identity keeps endpoints and models separate from presets", a
       return Response.json({ answers: { q: { type: "noul", noul: 0.6 } } });
     },
   });
-  const directory = await mkdtemp(join(tmpdir(), "codecompass-custom-cache-"));
+  const directory = await mkdtemp(join(tmpdir(), "devgrep-custom-cache-"));
   try {
     const request = {
       state: "test",

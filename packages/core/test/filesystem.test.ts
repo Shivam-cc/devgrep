@@ -10,7 +10,7 @@ afterEach(async () => {
   await Promise.all(roots.splice(0).map((root) => rm(root, { recursive: true, force: true })));
 });
 async function fixture(files: Record<string, string | Uint8Array>) {
-  const root = await mkdtemp(join(tmpdir(), "codecompass-filesystem-"));
+  const root = await mkdtemp(join(tmpdir(), "devgrep-filesystem-"));
   roots.push(root);
   for (const [path, content] of Object.entries(files)) {
     await mkdir(join(root, path, ".."), { recursive: true });

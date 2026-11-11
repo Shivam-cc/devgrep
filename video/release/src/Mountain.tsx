@@ -443,14 +443,14 @@ export const Terminal: React.FC<{ t: number }> = ({ t }) => {
       </div>
       <div style={mono}>
         <span style={{ color: C.red, fontWeight: 700 }}>❯ </span>
-        cc <span style={{ color: '#f4d9a8' }}>"How are previews used to decide which</span>
+        dg <span style={{ color: '#f4d9a8' }}>"How are previews used to decide which</span>
       </div>
       <div style={mono}>
         {'  '}
         <span style={{ color: '#f4d9a8' }}>files to open?"</span> packages/core
         <span style={{ opacity: caret ? 1 : 0, color: C.red }}> ▌</span>
       </div>
-      <div style={{ ...mono, marginTop: 26, color: C.red, fontWeight: 700 }}>CodeCompass: 17 relevant files.</div>
+      <div style={{ ...mono, marginTop: 26, color: C.red, fontWeight: 700 }}>devgrep: 17 relevant files.</div>
       {PATHS.map((p, i) => (
         <div key={p} style={{ ...mono, display: 'flex', alignItems: 'center', gap: 16, color: hot === i ? C.paper : '#a9a598' }}>
           <span style={{ width: 8, height: 40, borderRadius: 4, background: hot === i ? C.red : 'transparent' }} />

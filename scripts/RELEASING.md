@@ -3,7 +3,7 @@
 A release is selected by the version in `apps/cli/package.json` and an exactly
 matching `vVERSION` tag. The development version `0.0.0` is not publishable through
 this workflow. Stable versions publish to `latest`; prereleases publish to `next`.
-The package is `@codecompass/cli`, and its executable is `cc`.
+The package is `devgrep`, and its executables are `devgrep` and `dg`.
 
 Review the [recorded quality decision](../specs/done/codecompass/README.md) and
 supported-runtime evidence before requesting a release. Implementation closure

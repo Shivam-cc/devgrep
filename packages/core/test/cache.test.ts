@@ -20,7 +20,7 @@ afterEach(async () => {
   await Promise.all(roots.splice(0).map((root) => rm(root, { recursive: true, force: true })));
 });
 async function directory() {
-  const root = await mkdtemp(join(tmpdir(), "codecompass-cache-"));
+  const root = await mkdtemp(join(tmpdir(), "devgrep-cache-"));
   roots.push(root);
   return join(root, "cache");
 }

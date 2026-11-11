@@ -11,7 +11,7 @@ Keep the same source, Sol model and harness for a comparison. Use the actual
 public skill packaged with the candidate. Retrieval experiments keep that skill
 fixed. The public skill teaches CLI usage only; do not tune it with general
 debugging advice or agent-specific workflow rules to improve benchmark scores.
-A change to its usage instructions is identified separately in comparisons. Required initial CodeCompass use and ordinary follow-up search remain part of
+A change to its usage instructions is identified separately in comparisons. Required initial devgrep use and ordinary follow-up search remain part of
 the paired protocol. Timing is diagnostic, not an optimization target.
 
 Run a baseline only once per task, model and harness. Reuse that fixed result;

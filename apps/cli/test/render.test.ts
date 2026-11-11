@@ -75,7 +75,7 @@ test("scoped guidance and failure state remain explicit", () => {
   expect(output).toContain(
     'AGENTS.md lookup (root and returned-file ancestors): "AGENTS.md", "tests/AGENTS.md"; lookup incomplete.',
   );
-  expect(output).toContain("CodeCompass: 1 relevant files; discovery incomplete.");
+  expect(output).toContain("devgrep: 1 relevant files; discovery incomplete.");
   expect(output).toContain("Interrupted.");
   expect(output).toContain('Issue: "interrupted": 1');
 });
@@ -196,7 +196,7 @@ test("file inventories report counts, sizes, skips and incomplete listings", () 
   );
   expect(output).toBe(
     [
-      "CodeCompass files: 1,234 files eligible (3.0 MiB); listing incomplete. No provider requests were made.",
+      "devgrep files: 1,234 files eligible (3.0 MiB); listing incomplete. No provider requests were made.",
       "A search reads only what it explores; content checks may further exclude binary, credential-like, or over-16 MiB files.",
       'Skipped paths (a skipped directory counts once): "hidden" 7; "ignored" 2.',
       'Issue: "resource_limit": 1',

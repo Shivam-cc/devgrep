@@ -167,7 +167,7 @@ export async function authenticate(options: AuthOptions, signal: AbortSignal) {
   }
   await save(credentials, signal);
   process.stdout.write(
-    `${endpointFor(credentials).label} key saved. Run cc doctor to verify access.\n`,
+    `${endpointFor(credentials).label} key saved. Run dg doctor to verify access.\n`,
   );
 }
 
@@ -177,10 +177,10 @@ export async function loadCredentials(): Promise<Credentials> {
       await readFile(join(storageDirectory("config"), "credentials.json"), "utf8"),
     );
     if (typeof credentials.apiKey !== "string" || !credentials.apiKey.trim()) {
-      throw new CliError("Invalid credentials. Run cc auth again.");
+      throw new CliError("Invalid credentials. Run dg auth again.");
     }
     const provider = Object.hasOwn(credentials, "provider") ? credentials.provider : "vercel";
-    if (!isCredentialProvider(provider)) throw new CliError("Invalid provider. Run cc auth again.");
+    if (!isCredentialProvider(provider)) throw new CliError("Invalid provider. Run dg auth again.");
     const apiKey = validateKey(credentials.apiKey);
     if (provider === customProviderId) {
       return {
@@ -193,8 +193,8 @@ export async function loadCredentials(): Promise<Credentials> {
     return { provider, apiKey };
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") {
-      throw new CliError("Run cc auth or use cc auth --provider NAME --stdin.");
+      throw new CliError("Run dg auth or use dg auth --provider NAME --stdin.");
     }
-    throw new CliError("Could not read valid credentials. Run cc auth again.");
+    throw new CliError("Could not read valid credentials. Run dg auth again.");
   }
 }

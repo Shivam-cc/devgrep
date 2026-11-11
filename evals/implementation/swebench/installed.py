@@ -22,10 +22,10 @@ ROOT = HERE.parents[2]
 PROVIDER_ROUTE = HERE / 'provider-route.mjs' if (HERE / 'provider-route.mjs').exists() else ROOT / 'test/fixtures/provider-route.mjs'
 REGISTRY = json.loads((HERE / 'fixed-baselines.json').read_text())
 HARNESS_COMMIT = '02e7a74ffd0b707aab73d203fe87bdc7c76afc8e'
-TIMING_POLICY = {'clock': 'work_excluding_standalone_codecompass_search_wait', 'work_seconds': 900,
+TIMING_POLICY = {'clock': 'work_excluding_standalone_devgrep_search_wait', 'work_seconds': 900,
                  'hard_wall_seconds': 86400, 'overlapping_other_commands': 'count_as_work',
                  'event_clock': 'host_monotonic_observation'}
-TREATMENT_TIMING = ('The task, including verification, has a 900-second work budget, excluding time waiting for standalone cc search commands when no other command is running. '
+TREATMENT_TIMING = ('The task, including verification, has a 900-second work budget, excluding time waiting for standalone dg search commands when no other command is running. '
                     'Other commands, compound commands, and concurrent work count toward that budget; a 24-hour wall-clock guard stops runaway attempts. ')
 SAFE_FIELDS = {'instance_id', 'repo', 'base_commit', 'image', 'problem_statement'}
 VERSIONS = {'node': 'v24.14.0', 'codex': 'codex-cli 0.153.4', 'claude': '2.1.278 (Claude Code)'}
@@ -51,13 +51,13 @@ def baseline_prompt(row):
     return common + 'The entire task, including verification, has a 900-second deadline. ' + VERIFICATION + '\n\n' + row['problem_statement']
 
 
-REQUIRED_RETRIEVAL = ('Before investigating the implementation, run one natural-language cc search '
-                      'about the requested behavior and its tests. cc files is only inventory '
+REQUIRED_RETRIEVAL = ('Before investigating the implementation, run one natural-language dg search '
+                      'about the requested behavior and its tests. dg files is only inventory '
                       'and does not satisfy this requirement.\n\n')
 
 
 def treatment_prompt(row):
-    return '$codecompass\n\n' + REQUIRED_RETRIEVAL + baseline_prompt(row).replace(
+    return '$devgrep\n\n' + REQUIRED_RETRIEVAL + baseline_prompt(row).replace(
         'The entire task, including verification, has a 900-second deadline. ', TREATMENT_TIMING, 1)
 
 
@@ -148,28 +148,28 @@ def prepare(args):
     package = out / 'package.tgz'
     shutil.copyfile(args.package, package)
     package.chmod(0o600)
-    name = 'codecompass-prepare-' + uuid.uuid4().hex[:12]
+    name = 'devgrep-prepare-' + uuid.uuid4().hex[:12]
     # Preparation may fetch pinned npm dependencies. The coding agent never receives that network.
     install = '''set -eu
 cd /tmp
-npm install --global --prefix /opt/codecompass-install /tmp/package.tgz --ignore-scripts --no-audit --no-fund
-/opt/codecompass-install/bin/cc --version > /tmp/codecompass-version.txt
-# cc skill runs the npx installer; read the bundled skill bytes directly.
-cat /opt/codecompass-install/lib/node_modules/@codecompass/cli/dist/skills/codecompass/SKILL.md > /tmp/codecompass-skill.md
-node -e 'const fs=require("fs"),cp=require("child_process");const p=require("/opt/codecompass-install/lib/node_modules/@codecompass/cli/package.json");if(fs.realpathSync("/opt/codecompass-install/bin/cc")!=="/opt/codecompass-install/lib/node_modules/@codecompass/cli/dist/bin/index.js")throw Error("Unexpected executable");const git=a=>cp.execFileSync("git",["-C","/testbed",...a],{encoding:"utf8"}).trim();fs.writeFileSync("/tmp/install.json",JSON.stringify({package:p.name,version:p.version,head:git(["rev-parse","HEAD"]),tree:git(["rev-parse","HEAD^{tree}"]),status:git(["status","--porcelain"])}));'
-tar -C /opt -cf /tmp/installed-prefix.tar codecompass-install
+npm install --global --prefix /opt/devgrep-install /tmp/package.tgz --ignore-scripts --no-audit --no-fund
+/opt/devgrep-install/bin/devgrep --version > /tmp/devgrep-version.txt
+# dg skill runs the npx installer; read the bundled skill bytes directly.
+cat /opt/devgrep-install/lib/node_modules/devgrep/dist/skills/devgrep/SKILL.md > /tmp/devgrep-skill.md
+node -e 'const fs=require("fs"),cp=require("child_process");const p=require("/opt/devgrep-install/lib/node_modules/devgrep/package.json");if(fs.realpathSync("/opt/devgrep-install/bin/devgrep")!=="/opt/devgrep-install/lib/node_modules/devgrep/dist/bin/index.js")throw Error("Unexpected executable");const git=a=>cp.execFileSync("git",["-C","/testbed",...a],{encoding:"utf8"}).trim();fs.writeFileSync("/tmp/install.json",JSON.stringify({package:p.name,version:p.version,head:git(["rev-parse","HEAD"]),tree:git(["rev-parse","HEAD^{tree}"]),status:git(["status","--porcelain"])}));'
+tar -C /opt -cf /tmp/installed-prefix.tar devgrep-install
 '''
     try:
         command(['docker', 'create', '--platform', 'linux/amd64', '--name', name, image, 'sh', '-c', install])
         command(['docker', 'cp', str(package), name + ':/tmp/package.tgz'])
         with (out / 'prepare.log').open('wb') as log:
             subprocess.run(['docker', 'start', '-a', name], stdout=log, stderr=subprocess.STDOUT, check=True)
-        for remote, local in [('installed-prefix.tar', 'installed-prefix.tar'), ('install.json', 'installation.json'), ('codecompass-skill.md', 'skill.md'), ('codecompass-version.txt', 'version.txt')]:
+        for remote, local in [('installed-prefix.tar', 'installed-prefix.tar'), ('install.json', 'installation.json'), ('devgrep-skill.md', 'skill.md'), ('devgrep-version.txt', 'version.txt')]:
             command(['docker', 'cp', name + ':/tmp/' + remote, str(out / local)])
             (out / local).chmod(0o600)
         installed = json.loads((out / 'installation.json').read_text())
         cell = baseline['cell']
-        if installed['package'] != '@codecompass/cli' or installed['status'] or installed['head'] != cell['expected_image_head'] or installed['tree'] != cell['expected_source_tree']:
+        if installed['package'] != 'devgrep' or installed['status'] or installed['head'] != cell['expected_image_head'] or installed['tree'] != cell['expected_source_tree']:
             raise ValueError('Installation changed source identity or installed the wrong package')
         if (out / 'skill.md').read_bytes() != args.skill.read_bytes():
             raise ValueError('Packaged skill differs from the canonical skill')
@@ -177,10 +177,10 @@ tar -C /opt -cf /tmp/installed-prefix.tar codecompass-install
         cells = []
         for registered, fixed, _ in pairs:
             runtime = check_image(paired_runtime(fixed, rebuild))
-            check = 'codecompass-preflight-' + uuid.uuid4().hex[:12]
+            check = 'devgrep-preflight-' + uuid.uuid4().hex[:12]
             try:
                 command(['docker', 'create', '--platform', 'linux/amd64', '--network', 'none', '--name', check, runtime, 'sh', '-ec',
-                         'tar -xf /tmp/prefix.tar -C /opt; node --version; codex --version; claude --version; /opt/codecompass-install/bin/cc --version; cat /opt/codecompass-install/lib/node_modules/@codecompass/cli/dist/skills/codecompass/SKILL.md; git -C /testbed rev-parse HEAD; git -C /testbed rev-parse HEAD^{tree}; git -C /testbed status --porcelain'])
+                         'tar -xf /tmp/prefix.tar -C /opt; node --version; codex --version; claude --version; /opt/devgrep-install/bin/devgrep --version; cat /opt/devgrep-install/lib/node_modules/devgrep/dist/skills/devgrep/SKILL.md; git -C /testbed rev-parse HEAD; git -C /testbed rev-parse HEAD^{tree}; git -C /testbed status --porcelain'])
                 command(['docker', 'cp', str(out / 'installed-prefix.tar'), check + ':/tmp/prefix.tar'])
                 output = command(['docker', 'start', '-a', check]).stdout
                 expected = ((''.join(value + '\n' for value in VERSIONS.values())).encode() + (out / 'version.txt').read_bytes() + (out / 'skill.md').read_bytes() +
@@ -280,7 +280,7 @@ def existing_attempt(plan):
         alive = True
     except ProcessLookupError:
         alive = False
-    active = text(['docker', 'ps', '-q', '--filter', 'label=codecompass.cell=' + plan['cell']['id']])
+    active = text(['docker', 'ps', '-q', '--filter', 'label=devgrep.cell=' + plan['cell']['id']])
     if alive or active:
         raise ValueError('Existing attempt is active; wait for its actual process to finish')
     receipt.update(status='interrupted', interruption='Runner and labeled containers are no longer active')
@@ -288,7 +288,7 @@ def existing_attempt(plan):
     return True
 
 
-def required_codecompass_search(executions):
+def required_devgrep_search(executions):
     for execution in executions:
         try:
             argv = shlex.split(execution)
@@ -300,7 +300,7 @@ def required_codecompass_search(executions):
             segment = []
             for token in [*lexer, ';']:
                 if re.fullmatch(r'[;&|<>()\n]+', token):
-                    if direct_codecompass_search(shlex.join(segment)):
+                    if direct_devgrep_search(shlex.join(segment)):
                         return True
                     segment = []
                 else:
@@ -310,8 +310,8 @@ def required_codecompass_search(executions):
     return False
 
 
-def direct_codecompass_search(command):
-    """Recognize a standalone invocation, never a shell program that also runs cc."""
+def direct_devgrep_search(command):
+    """Recognize a standalone invocation, never a shell program that also runs dg."""
     try:
         argv = shlex.split(command)
         if len(argv) == 3 and argv[0] in ('/bin/sh', '/bin/bash', 'sh', 'bash') and argv[1] in ('-c', '-lc'):
@@ -328,7 +328,8 @@ def direct_codecompass_search(command):
         lexer.whitespace_split = True
         lexer.commenters = ''
         argv = list(lexer)
-        if not argv or argv[0] not in ('cc', '/opt/codecompass-install/bin/cc'):
+        if not argv or argv[0] not in (
+                'dg', 'devgrep', '/opt/devgrep-install/bin/dg', '/opt/devgrep-install/bin/devgrep'):
             return False
         if any(re.fullmatch(r'[;&|<>()]+', token) for token in argv):
             return False
@@ -397,7 +398,7 @@ def monitor_native(invocation, stdout, stderr, policy):
                 if kind == 'item.started':
                     if identifier in active:
                         errors += 1
-                    active[identifier] = direct_codecompass_search(item.get('command', ''))
+                    active[identifier] = direct_devgrep_search(item.get('command', ''))
                 else:
                     if identifier not in active:
                         errors += 1
@@ -473,7 +474,7 @@ def run(args):
     out = Path(plan['output'])
     out.mkdir(parents=True, exist_ok=False)
     out.chmod(0o700)
-    tag = 'codecompass-native-' + uuid.uuid4().hex[:12]
+    tag = 'devgrep-native-' + uuid.uuid4().hex[:12]
     network, proxy = tag + '-net', tag + '-proxy'
     receipt = {'engine': 'codex', 'cell': cell, 'image': image, 'plan_sha256': digest(args.plan), 'started': time.time(), 'status': 'preparing',
                'jev_provider': jev_provider, 'provider_route': 'vercel-ai-gateway', 'gateway_model': 'openai/gpt-5.6-sol', 'baseline': plan['baseline'], 'host_pid': os.getpid()}
@@ -486,11 +487,11 @@ def run(args):
         return subprocess.run(['docker', 'cp', remote, str(destination)], capture_output=True).returncode == 0
     try:
         command(['docker', 'network', 'create', '--internal', network])
-        command(['docker', 'run', '-d', '--name', proxy, '--label', 'codecompass.cell=' + cell['id'], '-e', 'CODECOMPASS_TRACE_DIR=/run/jev-traces', image, 'python3', '-u', '-c', (HERE / 'gateway_broker.py').read_text()])
+        command(['docker', 'run', '-d', '--name', proxy, '--label', 'devgrep.cell=' + cell['id'], '-e', 'DEVGREP_TRACE_DIR=/run/jev-traces', image, 'python3', '-u', '-c', (HERE / 'gateway_broker.py').read_text()])
         command(['docker', 'network', 'connect', '--alias', 'model-egress', network, proxy])
         # The monitor owns the deadline; keep the container alive for setup and
         # artifact capture too, then remove it in finally.
-        command(['docker', 'run', '-d', '--name', tag, '--label', 'codecompass.cell=' + cell['id'], '--network', network,
+        command(['docker', 'run', '-d', '--name', tag, '--label', 'devgrep.cell=' + cell['id'], '--network', network,
                  '-e', 'HTTP_PROXY=http://model-egress:3128', '-e', 'HTTPS_PROXY=http://model-egress:3128',
                  '-e', 'NO_PROXY=localhost,127.0.0.1,model-egress', image, 'sleep', 'infinity'])
         dx(['sh', '-c', 'useradd -m -u 1001 agent; mkdir -p /home/agent/.codex /home/agent/.claude /workspace; chown -R agent:agent /home/agent /workspace'])
@@ -510,13 +511,13 @@ def run(args):
             raise ValueError('Agent runtime changed')
         command(['docker', 'cp', cell['candidate'], tag + ':/tmp/installed-prefix.tar'])
         dx(['tar', '-xf', '/tmp/installed-prefix.tar', '-C', '/opt'])
-        skill_dir = '/home/agent/.agents/skills/codecompass'
+        skill_dir = '/home/agent/.agents/skills/devgrep'
         dx(['mkdir', '-p', skill_dir])
         put(tag, skill_dir + '/SKILL.md', Path(plan['skill']).read_bytes())
         receipt['installed_skills'] = {skill_dir: dx(['sha256sum', skill_dir + '/SKILL.md']).stdout.decode().split()[0]}
         if receipt['installed_skills'][skill_dir] != digest(plan['skill']):
             raise ValueError('Installed skill differs from the frozen package')
-        receipt['codecompass_version'] = dx(['/opt/codecompass-install/bin/cc', '--version'], 'agent').stdout.decode().strip()
+        receipt['devgrep_version'] = dx(['/opt/devgrep-install/bin/devgrep', '--version'], 'agent').stdout.decode().strip()
         receipt['candidate_sha256'] = digest(cell['candidate'])
         receipt['package_sha256'] = digest(plan['package'])
         prompt = treatment_prompt(row)
@@ -524,24 +525,24 @@ def run(args):
         receipt['prompt_sha256'] = digest(out / 'prompt.txt')
         token = uuid.uuid4().hex
         put(proxy, '/run/gateway.json', json.dumps({'key': os.environ['AI_GATEWAY_API_KEY'], 'token': token, 'agent_engine': 'codex', 'allow_jev': True, 'jev_provider': jev_provider, 'jev_key': os.environ.get('TYPESAFE_API_KEY') if jev_provider == 'typesafe' else None}).encode(), 'root:root')
-        dx(['mkdir', '-p', '/home/agent/.config/codecompass'], 'agent')
-        dx(['chmod', '700', '/home/agent/.config/codecompass'], 'agent')
-        dx(['mkdir', '-p', '/opt/codecompass-harness'])
-        put(tag, '/home/agent/.config/codecompass/credentials.json', json.dumps({'provider': jev_provider, 'apiKey': token}).encode())
-        put(tag, '/opt/codecompass-harness/provider-route.mjs', Path(plan['provider_preload']).read_bytes(), 'root:root', '444')
+        dx(['mkdir', '-p', '/home/agent/.config/devgrep'], 'agent')
+        dx(['chmod', '700', '/home/agent/.config/devgrep'], 'agent')
+        dx(['mkdir', '-p', '/opt/devgrep-harness'])
+        put(tag, '/home/agent/.config/devgrep/credentials.json', json.dumps({'provider': jev_provider, 'apiKey': token}).encode())
+        put(tag, '/opt/devgrep-harness/provider-route.mjs', Path(plan['provider_preload']).read_bytes(), 'root:root', '444')
         receipt['provider_preload_sha256'] = digest(plan['provider_preload'])
         config = ('model = "openai/gpt-5.6-sol"\nmodel_provider = "vercel"\nmodel_reasoning_effort = "medium"\n'
                   '[model_providers.vercel]\nname = "Vercel AI Gateway"\n'
-                  'base_url = "http://model-egress:3129/codex/v1"\nenv_key = "CODECOMPASS_MODEL_TOKEN"\nwire_api = "responses"\n')
+                  'base_url = "http://model-egress:3129/codex/v1"\nenv_key = "DEVGREP_MODEL_TOKEN"\nwire_api = "responses"\n')
         put(tag, '/home/agent/.codex/config.toml', config.encode())
         native = ['codex', 'exec', '--model', 'openai/gpt-5.6-sol', '-c', 'model_reasoning_effort="medium"', '-c', 'web_search="disabled"', '--json', '--dangerously-bypass-approvals-and-sandbox', '--skip-git-repo-check', prompt]
         receipt['command'] = native
-        path = '/opt/codecompass-install/bin:/opt/node-v24.14.0-linux-x64/bin:/opt/miniconda3/envs/testbed/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+        path = '/opt/devgrep-install/bin:/opt/node-v24.14.0-linux-x64/bin:/opt/miniconda3/envs/testbed/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
         invocation = ['docker', 'exec', '-u', 'agent', '-e', 'HOME=/home/agent', '-e', 'PATH=' + path,
-                      '-e', 'CONDA_PREFIX=/opt/miniconda3/envs/testbed', '-e', 'CODECOMPASS_MODEL_TOKEN=' + token,
+                      '-e', 'CONDA_PREFIX=/opt/miniconda3/envs/testbed', '-e', 'DEVGREP_MODEL_TOKEN=' + token,
                       '-e', 'XDG_CONFIG_HOME=/home/agent/.config',
-                      '-e', 'NODE_OPTIONS=--import=/opt/codecompass-harness/provider-route.mjs',
-                      '-e', 'CODECOMPASS_TEST_PROVIDER_ORIGIN=http://model-egress:3129', '-w', '/testbed', tag, *native]
+                      '-e', 'NODE_OPTIONS=--import=/opt/devgrep-harness/provider-route.mjs',
+                      '-e', 'DEVGREP_TEST_PROVIDER_ORIGIN=http://model-egress:3129', '-w', '/testbed', tag, *native]
         receipt['status'] = 'running'
         receipt['agent_started_at'] = time.time()
         write_json(out / 'receipt.json', receipt)
@@ -562,7 +563,7 @@ def run(args):
             except ValueError: pass
         receipt['native_completed'] = any(event.get('type') == 'turn.completed' for event in events)
         executions = [event['item'].get('command', '') for event in events if event.get('type') == 'item.completed' and event.get('item', {}).get('type') == 'command_execution']
-        receipt['required_retrieval_observed'] = required_codecompass_search(executions)
+        receipt['required_retrieval_observed'] = required_devgrep_search(executions)
         receipt['usage_events'] = [event for event in events if event.get('type') == 'turn.completed']
         receipt['source_status'] = dx(['git', '-C', '/testbed', 'status', '--porcelain'], 'agent').stdout.decode()
         dx(['git', '-C', '/testbed', 'add', '-A'], 'agent')
@@ -601,7 +602,7 @@ def grade(args):
     receipt = json.loads((out / 'receipt.json').read_text())
     if receipt['plan_sha256'] != digest(args.plan) or receipt['cell'] != cell or receipt['status'] not in ('completed', 'failed', 'interrupted'):
         raise ValueError('Attempt does not belong to this frozen plan')
-    run_id = 'codecompass-' + cell['id']
+    run_id = 'devgrep-' + cell['id']
     report = args.tooling.resolve() / 'logs/evaluation' / run_id / 'results.json'
     if (out / 'grading-receipt.json').exists():
         print(json.dumps({'status': 'retained', 'grading': str(out / 'grading-receipt.json')}))
@@ -759,7 +760,7 @@ def account(args):
     grading = out / 'grading-receipt.json'
     if grading.exists():
         grade_receipt = json.loads(grading.read_text())
-        result['official_resolved'] = grade_receipt.get('run_id') == 'codecompass-' + plan['cell']['id'] and grade_receipt.get('exit_code') == 0 and grade_receipt.get('resolved_instances') == 1
+        result['official_resolved'] = grade_receipt.get('run_id') == 'devgrep-' + plan['cell']['id'] and grade_receipt.get('exit_code') == 0 and grade_receipt.get('resolved_instances') == 1
         result['protocol_valid'] = protocol_valid(receipt)
         result['successful_cost_win'] = result['task_cost_complete'] and result['official_resolved'] and result['protocol_valid'] and result['task_cost_usd'] < plan['baseline_cost_usd']
     write_json(out / 'generation-accounting.json', result)
@@ -783,7 +784,7 @@ def aggregate(args):
         receipt, grading, billing = read('receipt.json'), read('grading-receipt.json'), read('generation-accounting.json')
         belongs = receipt.get('cell') == item['cell'] and receipt.get('plan_sha256') == digest(args.plan)
         terminal = belongs and receipt.get('status') in ('completed', 'failed', 'interrupted')
-        grade_attempted = terminal and grading.get('run_id') == 'codecompass-' + item['cell']['id'] and type(grading.get('exit_code')) is int
+        grade_attempted = terminal and grading.get('run_id') == 'devgrep-' + item['cell']['id'] and type(grading.get('exit_code')) is int
         graded = grade_attempted and grading['exit_code'] == 0
         protocol = terminal and protocol_valid(receipt)
         solved = graded and grading.get('resolved_instances') == 1
@@ -827,7 +828,7 @@ def main():
     prep.add_argument('--output', type=Path, required=True)
     prep.add_argument('--task', default='all', choices=['all', *[item['task'] for item in REGISTRY['tasks']]])
     prep.add_argument('--evidence-root', type=Path, default=ROOT)
-    prep.add_argument('--skill', type=Path, default=ROOT / 'skills/codecompass/SKILL.md')
+    prep.add_argument('--skill', type=Path, default=ROOT / 'skills/devgrep/SKILL.md')
     prep.add_argument('--jev-provider', choices=['vercel', 'typesafe'], default='vercel', help='Jev route only; Sol remains on Gateway')
     prep.add_argument('--runtime-image', help='Rebuilt image ID extending the pinned source; source/tool versions still verified, original image recorded')
     execute = sub.add_parser('run', help='Run the paid coding-agent treatment once, or validate without calls')

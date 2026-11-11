@@ -17,7 +17,7 @@ export type CacheInput = {
 export type CacheAnswers = Record<string, number>;
 export type CacheIssue = "cache_unavailable" | "cache_corrupt" | "cache_limit";
 export type CacheOptions = {
-  /** Caller supplies the storage location; this directory contains only CodeCompass cache data. */
+  /** Caller supplies the storage location; this directory contains only devgrep cache data. */
   directory: string;
   enabled?: boolean;
   ttlMs?: number;

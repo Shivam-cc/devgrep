@@ -23,7 +23,7 @@ try {
     args.length === 0 || (args.length === 2 && args[0] === "--prebuilt"),
     "Usage: node scripts/test-native.mjs [--prebuilt package.tgz]",
   );
-  scratch = await mkdtemp(join(tmpdir(), "cc-native-"));
+  scratch = await mkdtemp(join(tmpdir(), "devgrep-native-"));
   const home = join(scratch, "home"),
     config = join(scratch, "config"),
     cache = join(scratch, "cache"),
@@ -92,14 +92,14 @@ try {
       maxBuffer: 8_000_000,
     },
   );
-  const binary = join(prefix, "bin/cc");
-  const packageDirectory = await realpath(join(prefix, "lib/node_modules/@codecompass/cli"));
+  const binary = join(prefix, "bin/devgrep");
+  const packageDirectory = await realpath(join(prefix, "lib/node_modules/devgrep"));
   assert.ok(
     (await realpath(binary)).startsWith(`${packageDirectory}/`),
     "Executable must belong to the fresh npm install",
   );
   const skill = join(scratch, "canonical-skill.md");
-  await cp(process.env.CODECOMPASS_CANONICAL_SKILL || join(root, "skills/codecompass/SKILL.md"), skill);
+  await cp(process.env.DEVGREP_CANONICAL_SKILL || join(root, "skills/devgrep/SKILL.md"), skill);
   const preload = join(scratch, "provider-route.mjs");
   await cp(join(root, "test/fixtures/provider-route.mjs"), preload);
   await symlink(process.execPath, join(runtimeBin, "node"));
@@ -109,11 +109,11 @@ try {
     XDG_CONFIG_HOME: config,
     XDG_CACHE_HOME: cache,
     TMPDIR: scratch,
-    CODECOMPASS_TEST_PROVIDER_PRELOAD: pathToFileURL(preload).href,
-    CODECOMPASS_INSTALLED_BINARY: binary,
-    CODECOMPASS_INSTALLED_PACKAGE: packageDirectory,
-    CODECOMPASS_EXPECTED_SKILL: skill,
-    CODECOMPASS_TEST_PATH: runtimeBin,
+    DEVGREP_TEST_PROVIDER_PRELOAD: pathToFileURL(preload).href,
+    DEVGREP_INSTALLED_BINARY: binary,
+    DEVGREP_INSTALLED_PACKAGE: packageDirectory,
+    DEVGREP_EXPECTED_SKILL: skill,
+    DEVGREP_TEST_PATH: runtimeBin,
   };
   for (const command of ["python3", "bun", "cc", "gcc", "clang", "make"])
     assert.equal(

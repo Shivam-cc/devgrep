@@ -43,12 +43,12 @@ jobs:
         id: package
         env:
           RELEASE_TAG: ${{ github.ref_name }}
-        run: node scripts/prepare-release.mjs "$RELEASE_TAG" "$RUNNER_TEMP/codecompass-release"
+        run: node scripts/prepare-release.mjs "$RELEASE_TAG" "$RUNNER_TEMP/devgrep-release"
       - name: Retain the verified release candidate
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
-          name: codecompass-${{ steps.package.outputs.version }}
-          path: ${{ runner.temp }}/codecompass-release/
+          name: devgrep-${{ steps.package.outputs.version }}
+          path: ${{ runner.temp }}/devgrep-release/
           if-no-files-found: error
       - name: Exercise the exact tarball in the Node-only runtime
         env:
@@ -88,10 +88,10 @@ jobs:
           bun scripts/parser-assets.mjs
       - name: Retrieve the exact public registry version
         run: |
-          mkdir -p "$RUNNER_TEMP/codecompass-registry"
+          mkdir -p "$RUNNER_TEMP/devgrep-registry"
           # npm can accept publication before the public registry exposes it.
           for attempt in {1..12}; do
-            if npm pack "@codecompass/cli@$RELEASE_VERSION" --ignore-scripts --pack-destination "$RUNNER_TEMP/codecompass-registry"; then
+            if npm pack "devgrep@$RELEASE_VERSION" --ignore-scripts --pack-destination "$RUNNER_TEMP/devgrep-registry"; then
               break
             fi
             if [ "$attempt" -eq 12 ]; then
@@ -101,6 +101,6 @@ jobs:
             sleep 15
           done
       - name: Match the registry archive to the verified candidate
-        run: node scripts/validate-release.mjs "$RUNNER_TEMP/codecompass-registry/codecompass-cli-$RELEASE_VERSION.tgz" "v$RELEASE_VERSION" "$RELEASE_INTEGRITY"
+        run: node scripts/validate-release.mjs "$RUNNER_TEMP/devgrep-registry/devgrep-$RELEASE_VERSION.tgz" "v$RELEASE_VERSION" "$RELEASE_INTEGRITY"
       - name: Install registry bytes fresh and run installed journeys
-        run: bash scripts/test-installed.sh --prebuilt "$RUNNER_TEMP/codecompass-registry/codecompass-cli-$RELEASE_VERSION.tgz"
+        run: bash scripts/test-installed.sh --prebuilt "$RUNNER_TEMP/devgrep-registry/devgrep-$RELEASE_VERSION.tgz"

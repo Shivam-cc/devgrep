@@ -361,7 +361,7 @@ const pytestFiles=selected.filter(file=>{
 }).map(file=>file.path);
 const quoteArg=(value:string)=>"'"+value.replaceAll("'","'\\''")+"'";
 const output=[
- `Codecompass: ${selected.length} relevant files${partial?'; discovery incomplete':''}.`,
+ `devgrep: ${selected.length} relevant files${partial?'; discovery incomplete':''}.`,
  `AGENTS.md lookup (root and returned-file ancestors): ${instructionFiles.length?instructionFiles.map(p=>JSON.stringify(p)).join(', '):'none found'}${instructionLookupIncomplete?'; lookup incomplete':''}.`,
  ...pytestFiles.map(path=>`Suggested test entry point (not executed): python -m pytest -q ${quoteArg(path)}`),
  ...selected.flatMap(file=>[
@@ -379,4 +379,4 @@ for(const file of selected){
 }
 process.stdout.write('\nEnd context.\n');
 }
-main().catch(error=>{process.stdout.write('CodeCompass error: '+(error instanceof Error?error.message:'unknown failure')+'\n');process.exitCode=1;});
+main().catch(error=>{process.stdout.write('devgrep error: '+(error instanceof Error?error.message:'unknown failure')+'\n');process.exitCode=1;});

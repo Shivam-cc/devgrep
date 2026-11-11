@@ -134,7 +134,7 @@ export const Film: React.FC = () => {
         {t >= 15.6 && <Install t={t} />}
         {t >= 2.0 && t < 15.95 && (
           <div style={{ position: 'absolute', right: 70, top: 64, height: 80, padding: '0 34px', display: 'flex', alignItems: 'center', gap: 16, borderRadius: 40, background: C.red, color: C.paper, fontFamily: MONO, fontWeight: 700, fontSize: 44, letterSpacing: 3, boxShadow: '0 14px 30px rgba(140,40,20,0.35)', opacity: clamp((t - 2.0) * 6) }}>
-            codecompass 0.5
+            devgrep 0.5
           </div>
         )}
       </Frame>

@@ -10,9 +10,9 @@ import { posix, testInDocker } from "./cli";
 const execute = promisify(execFile);
 
 testInDocker(
-  "npm tarball installs the cc executable and canonical skill outside the checkout",
+  "npm tarball installs the devgrep and dg executables and canonical skill outside the checkout",
   async () => {
-    const scratch = await mkdtemp(join(tmpdir(), "codecompass-package-"));
+    const scratch = await mkdtemp(join(tmpdir(), "devgrep-package-"));
     const npmCache = join(scratch, "npm-cache");
     if (process.env.npm_config_cache) {
       await cp(process.env.npm_config_cache, npmCache, { recursive: true });
@@ -51,7 +51,7 @@ testInDocker(
       for (const name of ["python", "go", "rust"])
         expect(filenames).toContain(`dist/assets/tree-sitter/tree-sitter-${name}.wasm`);
       expect(filenames).toContain("dist/THIRD_PARTY_NOTICES.txt");
-      expect(filenames).toContain("dist/skills/codecompass/SKILL.md");
+      expect(filenames).toContain("dist/skills/devgrep/SKILL.md");
       expect(filenames.some((path: string) => /^(evals|src|node_modules|test)\//.test(path))).toBe(
         false,
       );
@@ -65,22 +65,22 @@ testInDocker(
         "--no-fund",
         join(scratch, packed.filename),
       ]);
-      const binary = join(prefix, "node_modules/@codecompass/cli/dist/bin/index.js");
+      const binary = join(prefix, "node_modules/devgrep/dist/bin/index.js");
       const help = await execute("node", [binary, "--help"], { cwd: scratch, env });
       expect(help.stderr).toBe("");
-      expect(help.stdout).toContain('Usage: cc "question" [root]');
+      expect(help.stdout).toContain('Usage: dg "question" [root]');
       expect(
         await readFile(
-          join(prefix, "node_modules/@codecompass/cli/dist/skills/codecompass/SKILL.md"),
+          join(prefix, "node_modules/devgrep/dist/skills/devgrep/SKILL.md"),
           "utf8",
         ),
       ).toBe(
-        await readFile(new URL("../../../skills/codecompass/SKILL.md", import.meta.url), "utf8"),
+        await readFile(new URL("../../../skills/devgrep/SKILL.md", import.meta.url), "utf8"),
       );
       const manifest = JSON.parse(
-        await readFile(join(prefix, "node_modules/@codecompass/cli/package.json"), "utf8"),
+        await readFile(join(prefix, "node_modules/devgrep/package.json"), "utf8"),
       );
-      expect(manifest.bin).toEqual({ cc: "./dist/bin/index.js" });
+      expect(manifest.bin).toEqual({ devgrep: "./dist/bin/index.js", dg: "./dist/bin/index.js" });
       expect(manifest.dependencies["@repo/core"]).toBeUndefined();
     } finally {
       await rm(scratch, { recursive: true, force: true });

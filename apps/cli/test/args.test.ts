@@ -139,7 +139,7 @@ test("files takes an optional root and only the filesystem policy flags", () => 
     ["files", "--max-source-bytes", "1"],
     ["files", "--provider", "vercel"],
   ])
-    expect(() => parseCommand(args)).toThrow("Usage: cc files");
+    expect(() => parseCommand(args)).toThrow("Usage: dg files");
 });
 
 test("exclude patterns are repeatable, normalized for cache identity, and limited to search or files", () => {

@@ -29,6 +29,6 @@ for (const name of ["parser-worker", "parser-helpers", "parser-preview", "parser
   await cp(join(root, `packages/core/src/${name}.mjs`), join(out, `bin/${name}.mjs`));
 await cp(join(root, "LICENSE"), join(out, "LICENSE"));
 await cp(join(root, "packages/core/assets"), join(out, "assets"), { recursive: true });
-const skill = join(out, "skills/codecompass/SKILL.md");
+const skill = join(out, "skills/devgrep/SKILL.md");
 await mkdir(dirname(skill), { recursive: true });
-await cp(join(root, "skills/codecompass/SKILL.md"), skill);
+await cp(join(root, "skills/devgrep/SKILL.md"), skill);

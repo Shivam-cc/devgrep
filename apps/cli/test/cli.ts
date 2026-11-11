@@ -3,7 +3,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-export const testInDocker = process.env.CODECOMPASS_TEST_IN_DOCKER === "1" ? test : test.skip;
+export const testInDocker = process.env.DEVGREP_TEST_IN_DOCKER === "1" ? test : test.skip;
 export { posix, testIfDockerPosix as testInDockerPosix } from "../../../test/helpers/docker";
 
 export async function withCli(
@@ -16,8 +16,8 @@ export async function withCli(
     ) => Promise<{ stdout: string; stderr: string; code: number }>;
   }) => Promise<void>,
 ) {
-  const home = await mkdtemp(join(tmpdir(), "codecompass-cli-"));
-  const cli = process.env.CODECOMPASS_TEST_CLI ?? join(import.meta.dir, "../dist/bin/index.js");
+  const home = await mkdtemp(join(tmpdir(), "devgrep-cli-"));
+  const cli = process.env.DEVGREP_TEST_CLI ?? join(import.meta.dir, "../dist/bin/index.js");
   const run = async (args: string[], input = "", env: NodeJS.ProcessEnv = {}) => {
     const child = Bun.spawn(["node", cli, ...args], {
       cwd: home,

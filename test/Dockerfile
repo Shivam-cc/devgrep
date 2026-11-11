@@ -15,9 +15,9 @@ COPY scripts scripts
 COPY skills skills
 COPY LICENSE LICENSE
 RUN bun scripts/build-cli.ts
-RUN mkdir -p /opt/npm-cache && cd apps/cli && npm pack --ignore-scripts --pack-destination /opt && npm install --prefix /opt/npm-warm --cache /opt/npm-cache --ignore-scripts --no-audit --no-fund /opt/codecompass-cli-*.tgz && chmod -R a+rX /opt/npm-cache
+RUN mkdir -p /opt/npm-cache && cd apps/cli && npm pack --ignore-scripts --pack-destination /opt && npm install --prefix /opt/npm-warm --cache /opt/npm-cache --ignore-scripts --no-audit --no-fund /opt/devgrep-*.tgz && chmod -R a+rX /opt/npm-cache
 ENV npm_config_cache=/opt/npm-cache npm_config_offline=true
 COPY evals/implementation/swebench/installed.py evals/implementation/swebench/gateway_broker.py evals/implementation/swebench/test_installed.py evals/implementation/swebench/
 COPY evals/implementation/swebench/fixed-baselines.json evals/implementation/swebench/
-ENV CODECOMPASS_TEST_IN_DOCKER=1 HOME=/tmp/codecompass-home XDG_CONFIG_HOME=/tmp/codecompass-config XDG_CACHE_HOME=/tmp/codecompass-cache
+ENV DEVGREP_TEST_IN_DOCKER=1 HOME=/tmp/devgrep-home XDG_CONFIG_HOME=/tmp/devgrep-config XDG_CACHE_HOME=/tmp/devgrep-cache
 CMD ["bash", "scripts/test-suite.sh"]

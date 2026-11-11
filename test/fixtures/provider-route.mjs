@@ -10,10 +10,10 @@ export function routeProviderFetch(originalFetch, origin) {
     const url = new URL(input);
     if (!endpoints.has(url.href)) throw new Error(`Unexpected provider destination: ${url.href}`);
     const headers = new Headers(init?.headers);
-    headers.set("x-codecompass-original-url", url.href);
+    headers.set("x-devgrep-original-url", url.href);
     return originalFetch(new URL(url.pathname, origin), { ...init, headers });
   };
 }
-if (process.env.CODECOMPASS_TEST_PROVIDER_ORIGIN) {
-  globalThis.fetch = routeProviderFetch(globalThis.fetch, process.env.CODECOMPASS_TEST_PROVIDER_ORIGIN);
+if (process.env.DEVGREP_TEST_PROVIDER_ORIGIN) {
+  globalThis.fetch = routeProviderFetch(globalThis.fetch, process.env.DEVGREP_TEST_PROVIDER_ORIGIN);
 }

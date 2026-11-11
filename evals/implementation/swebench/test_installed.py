@@ -54,8 +54,8 @@ class InstalledTests(unittest.TestCase):
         row = {'problem_statement': 'Fix behavior.'}
         self.assertEqual(hashlib.sha256(runner.baseline_prompt(row).encode()).hexdigest(), '41c7e3cf7acbc19d0b24ab55e6ea29fe3cdbc2b777549d158488c6c55baaa643')
         prompt = runner.treatment_prompt(row)
-        self.assertTrue(prompt.startswith('$codecompass\n\n'))
-        self.assertEqual(prompt, '$codecompass\n\n' + runner.REQUIRED_RETRIEVAL + runner.baseline_prompt(row).replace(
+        self.assertTrue(prompt.startswith('$devgrep\n\n'))
+        self.assertEqual(prompt, '$devgrep\n\n' + runner.REQUIRED_RETRIEVAL + runner.baseline_prompt(row).replace(
             'The entire task, including verification, has a 900-second deadline. ', runner.TREATMENT_TIMING, 1))
         self.assertTrue(prompt.endswith(runner.VERIFICATION + '\n\nFix behavior.'))
 
@@ -75,8 +75,8 @@ class InstalledTests(unittest.TestCase):
         return {'type':'item.completed' if completed else 'item.started',
                 'item':{'id':identifier,'type':'command_execution','command':command,**extra}}
 
-    def test_direct_codecompass_wait_does_not_consume_work_budget(self):
-        command = "/bin/sh -lc 'cc \"research the mechanism\"'"
+    def test_direct_devgrep_wait_does_not_consume_work_budget(self):
+        command = "/bin/sh -lc 'dg \"research the mechanism\"'"
         result, events = self.monitor([self.event('search', command), 3.2,
                                        self.event('search', command, True), {'type':'turn.completed'}])
         self.assertEqual(result['exit_code'], 0)
@@ -87,7 +87,7 @@ class InstalledTests(unittest.TestCase):
         self.assertIn('turn.completed', events)
 
     def test_nonterminal_error_during_retrieval_preserves_credit_until_completion(self):
-        command = 'cc "research"'
+        command = 'dg "research"'
         result, events = self.monitor([self.event('search', command), 0.3,
                                        {'type':'error','message':'stream reconnecting'}, 3.2,
                                        self.event('search', command, True), {'type':'turn.completed'}])
@@ -107,8 +107,8 @@ class InstalledTests(unittest.TestCase):
         self.assertGreaterEqual(result['work_seconds'], 2)
         self.assertNotIn('turn.completed', events)
 
-    def test_cancelled_codecompass_stops_credit_and_remaining_work_times_out(self):
-        command = 'cc "research"'
+    def test_cancelled_devgrep_stops_credit_and_remaining_work_times_out(self):
+        command = 'dg "research"'
         result, events = self.monitor([self.event('search', command), 0.6,
                                        self.event('search', command, True, exit_code=130, status='failed'),
                                        3, {'type':'turn.completed'}])
@@ -120,7 +120,7 @@ class InstalledTests(unittest.TestCase):
         self.assertIn('"exit_code": 130', events)
 
     def test_other_command_overlap_counts_as_work(self):
-        command = 'cc "research"'
+        command = 'dg "research"'
         result, events = self.monitor([self.event('search', command), 0.6,
                                        self.event('test', 'python -m unittest'), 3,
                                        {'type':'turn.completed'}])
@@ -132,10 +132,10 @@ class InstalledTests(unittest.TestCase):
         self.assertNotIn('turn.completed', events)
 
     def test_overlapping_retrieval_is_union_not_double_credit(self):
-        result, _ = self.monitor([self.event('a', 'cc "first"'), 0.3,
-                                  self.event('b', 'cc "second"'), 0.6,
-                                  self.event('a', 'cc "first"', True), 0.3,
-                                  self.event('b', 'cc "second"', True), {'type':'turn.completed'}])
+        result, _ = self.monitor([self.event('a', 'dg "first"'), 0.3,
+                                  self.event('b', 'dg "second"'), 0.6,
+                                  self.event('a', 'dg "first"', True), 0.3,
+                                  self.event('b', 'dg "second"', True), {'type':'turn.completed'}])
         self.assertEqual(result['exit_code'], 0)
         self.assertFalse(result['timed_out'])
         self.assertEqual([span['command_ids'] for span in result['credit_intervals']], [['a'], ['a', 'b'], ['b']])
@@ -143,29 +143,41 @@ class InstalledTests(unittest.TestCase):
         self.assertLessEqual(result['retrieval_wait_seconds'], result['wall_seconds'])
 
     def test_hard_wall_stops_unfinished_retrieval(self):
-        result, _ = self.monitor([self.event('search', 'cc "research"'), 5], work_seconds=4, hard_wall_seconds=1.5)
+        result, _ = self.monitor([self.event('search', 'dg "research"'), 5], work_seconds=4, hard_wall_seconds=1.5)
         self.assertTrue(result['timed_out'])
         self.assertEqual(result['timeout_kind'], 'hard_wall')
         self.assertTrue(result['credit_intervals'])
 
     def test_only_unambiguous_standalone_search_gets_credit(self):
-        for command in ['cc "query with ; punctuation"', "/bin/sh -lc 'cc query'",
-                        'cc --no-cache "query" /testbed', 'cc "query" --exclude tests/ --exclude=src/generated/', '/opt/codecompass-install/bin/cc "query" --max-source-bytes=0']:
-            with self.subTest(command=command): self.assertTrue(runner.direct_codecompass_search(command))
-        for command in ['cc', 'cc files', 'cc files /testbed', 'cc files --exclude tests/', 'cc doctor', 'cc auth --stdin', 'cc cache clear', 'cc skill', 'cc --help',
-                        'cc -h', 'cc --version', 'cc "query" --version', 'cc "query"; sleep 5',
-                        'cc "query" && sleep 5', 'sleep 5 | cc "query"', 'cc "query" > out',
-                        'cc "$(sleep 5)"', 'env KEY=value cc "query"', 'echo cc "query"', 'cc "query" &', 'cc doc*', 'cc auth?', 'cc {auth,doctor}',
-                        'cc "query"\nsleep 5']:
-            with self.subTest(command=command): self.assertFalse(runner.direct_codecompass_search(command))
+        for command in ['dg "query with ; punctuation"', "/bin/sh -lc 'dg query'",
+                        'dg --no-cache "query" /testbed', 'dg "query" --exclude tests/ --exclude=src/generated/', '/opt/devgrep-install/bin/devgrep "query" --max-source-bytes=0']:
+            with self.subTest(command=command): self.assertTrue(runner.direct_devgrep_search(command))
+        for command in ['dg', 'dg files', 'dg files /testbed', 'dg files --exclude tests/', 'dg doctor', 'dg auth --stdin', 'dg cache clear', 'dg skill', 'dg --help',
+                        'dg -h', 'dg --version', 'dg "query" --version', 'dg "query"; sleep 5',
+                        'dg "query" && sleep 5', 'sleep 5 | dg "query"', 'dg "query" > out',
+                        'dg "$(sleep 5)"', 'env KEY=value dg "query"', 'echo dg "query"', 'dg "query" &', 'dg doc*', 'dg auth?', 'dg {auth,doctor}',
+                        'dg "query"\nsleep 5']:
+            with self.subTest(command=command): self.assertFalse(runner.direct_devgrep_search(command))
 
     def test_inventory_and_setup_commands_do_not_satisfy_required_retrieval(self):
-        executions=['command -v cc && cc files .', 'cc doctor', 'cc --version']
-        self.assertFalse(runner.required_codecompass_search(executions))
-        self.assertFalse(runner.required_codecompass_search(['echo cc "How does collection work?"']))
-        self.assertTrue(runner.required_codecompass_search(executions+['/bin/sh -lc \'cc "How does collection work?" .\'']))
-        self.assertTrue(runner.required_codecompass_search(['command -v cc && cc "How does collection work?" . --max-requests 1000 --max-output-bytes=256000']))
-        self.assertTrue(runner.required_codecompass_search(['command -v cc\ncc "How does collection work?" .']))
+        executions=['command -v dg && dg files .', 'dg doctor', 'dg --version']
+        self.assertFalse(runner.required_devgrep_search(executions))
+        self.assertFalse(runner.required_devgrep_search(['echo dg "How does collection work?"']))
+        self.assertTrue(runner.required_devgrep_search(executions+['/bin/sh -lc \'dg "How does collection work?" .\'']))
+        self.assertTrue(runner.required_devgrep_search(['command -v dg && dg "How does collection work?" . --max-requests 1000 --max-output-bytes=256000']))
+        self.assertTrue(runner.required_devgrep_search(['command -v dg\ndg "How does collection work?" .']))
+
+    def test_both_devgrep_aliases_are_recognized(self):
+        for executable in ('dg', 'devgrep', '/opt/devgrep-install/bin/dg', '/opt/devgrep-install/bin/devgrep'):
+            with self.subTest(executable=executable):
+                search = f'{executable} "research the mechanism" .'
+                self.assertTrue(runner.direct_devgrep_search(search))
+                self.assertTrue(runner.required_devgrep_search([search]))
+                self.assertFalse(runner.direct_devgrep_search(f'{executable} files .'))
+                self.assertFalse(runner.required_devgrep_search([f'{executable} files .']))
+                self.assertFalse(runner.direct_devgrep_search(f'{executable} --version'))
+                self.assertFalse(runner.direct_devgrep_search(search + '; sleep 5'))
+                self.assertFalse(runner.required_devgrep_search(['echo ' + search]))
 
     def test_timing_policy_drift_and_legacy_schema_require_their_archived_runner(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -239,19 +251,19 @@ class InstalledTests(unittest.TestCase):
                     output = b'fixture patch'
                 return subprocess.CompletedProcess(argv, 0, output, b'')
             def expired(invocation, stdout, stderr, policy):
-                self.assertIn('NODE_OPTIONS=--import=/opt/codecompass-harness/provider-route.mjs', invocation)
-                self.assertIn('CODECOMPASS_TEST_PROVIDER_ORIGIN=http://model-egress:3129', invocation)
+                self.assertIn('NODE_OPTIONS=--import=/opt/devgrep-harness/provider-route.mjs', invocation)
+                self.assertIn('DEVGREP_TEST_PROVIDER_ORIGIN=http://model-egress:3129', invocation)
                 self.assertFalse(any(arg.startswith('AI_GATEWAY_') for arg in invocation))
-                saved = json.loads(writes['/home/agent/.config/codecompass/credentials.json'])
+                saved = json.loads(writes['/home/agent/.config/devgrep/credentials.json'])
                 self.assertEqual(saved['provider'], 'vercel')
                 self.assertNotEqual(saved['apiKey'], 'fixture-only')
-                self.assertEqual(writes['/opt/codecompass-harness/provider-route.mjs'], runner.PROVIDER_ROUTE.read_bytes())
+                self.assertEqual(writes['/opt/devgrep-harness/provider-route.mjs'], runner.PROVIDER_ROUTE.read_bytes())
                 # Native completion can already be in the pipe when the work
                 # deadline is noticed. A zero OS exit cannot override that clock.
                 # Simulate an hour of retrieval plus expired work. Docker's
                 # task container must remain available for patch extraction.
                 elapsed[0] = 4501
-                events = [self.event('search', 'cc "research"', True), {'type':'turn.completed'}]
+                events = [self.event('search', 'dg "research"', True), {'type':'turn.completed'}]
                 stdout.write(('\n'.join(json.dumps(e) for e in events) + '\n').encode())
                 return {'exit_code':0,'timed_out':True,'timeout_kind':'work',
                         'wall_seconds':4501,'work_seconds':901,'retrieval_wait_seconds':3600,
@@ -326,7 +338,7 @@ class InstalledTests(unittest.TestCase):
             path,plan=self.fixture(Path(temporary),all_tasks=True)
             for index,item in enumerate(plan['cells']):
                 out=self.receipt(path,item)
-                runner.write_json(out/'grading-receipt.json',{'run_id':'codecompass-'+item['cell']['id'],'exit_code':0,'resolved_instances':int(item['baseline_resolved'])})
+                runner.write_json(out/'grading-receipt.json',{'run_id':'devgrep-'+item['cell']['id'],'exit_code':0,'resolved_instances':int(item['baseline_resolved'])})
                 runner.write_json(out/'generation-accounting.json',{'cell':item['cell']['id'],'all_requests_accounted':index<7,'gateway_cost_usd':0.01 if index<7 else None,'known_gateway_cost_usd':0.01,'task_cost_complete':index<7,'task_cost_usd':0.02 if index<7 else None})
             with contextlib.redirect_stdout(io.StringIO()):result=runner.aggregate(argparse.Namespace(plan=path))
             self.assertEqual(result['official_solves'],8);self.assertEqual(result['baseline_solves_preserved'],8)
@@ -338,13 +350,13 @@ class InstalledTests(unittest.TestCase):
             self.assertFalse(result['cells'][-1]['protocol_valid'])
             self.assertAlmostEqual(result['known_gateway_subtotal_usd'],0.1)
             last=plan['cells'][-1]
-            runner.write_json(Path(last['output'])/'grading-receipt.json',{'run_id':'codecompass-'+last['cell']['id'],'exit_code':1})
+            runner.write_json(Path(last['output'])/'grading-receipt.json',{'run_id':'devgrep-'+last['cell']['id'],'exit_code':1})
             with contextlib.redirect_stdout(io.StringIO()):result=runner.aggregate(argparse.Namespace(plan=path))
             self.assertEqual(result['official_solves'],8)
             out=Path(plan['cells'][0]['output']);runner.write_json(out/'generation-accounting.json',{'cell':plan['cells'][0]['cell']['id'],'all_requests_accounted':False,'gateway_cost_usd':None,'successful_cost_win':True})
             with contextlib.redirect_stdout(io.StringIO()):result=runner.aggregate(argparse.Namespace(plan=path))
             self.assertIsNone(result['fully_billed_total_usd']);self.assertEqual(result['fully_billed_solved_cost_wins'],6)
-            runner.write_json(out/'grading-receipt.json',{'run_id':'codecompass-'+plan['cells'][0]['cell']['id'],'exit_code':0,'resolved_instances':0})
+            runner.write_json(out/'grading-receipt.json',{'run_id':'devgrep-'+plan['cells'][0]['cell']['id'],'exit_code':0,'resolved_instances':0})
             with contextlib.redirect_stdout(io.StringIO()):result=runner.aggregate(argparse.Namespace(plan=path))
             self.assertEqual(result['baseline_solves_preserved'],7)
 
@@ -461,7 +473,7 @@ class InstalledTests(unittest.TestCase):
             (out/'proxy.jsonl').write_text('\n'.join(json.dumps(event) for event in events))
             receipt=json.loads((out/'receipt.json').read_text());receipt['jev_traces_copied']=True;runner.write_json(out/'receipt.json',receipt)
             runner.write_json(out/'generation-lookups.json',[{'id':'gen_sol','metadata':{'id':'gen_sol','model':'openai/gpt-5.6-sol','total_cost':0.1}}])
-            runner.write_json(out/'grading-receipt.json',{'run_id':'codecompass-'+plan['cell']['id'],'exit_code':0,'resolved_instances':1})
+            runner.write_json(out/'grading-receipt.json',{'run_id':'devgrep-'+plan['cell']['id'],'exit_code':0,'resolved_instances':1})
             with patch.object(runner.urllib.request,'urlopen',side_effect=AssertionError('No network')),contextlib.redirect_stdout(io.StringIO()):
                 runner.account(argparse.Namespace(plan=path,task=None))
             result=json.loads((out/'generation-accounting.json').read_text())
@@ -521,11 +533,11 @@ class InstalledTests(unittest.TestCase):
             root=Path(temporary);config=root/'gateway.json'
             config.write_text(json.dumps({'key':'real-key','token':'token','allow_jev':True}))
             route='/typesafe/v1/systemone'
-            headers={'Authorization':'Bearer token','x-codecompass-original-url':'https://ai-gateway.vercel.sh'+route}
+            headers={'Authorization':'Bearer token','x-devgrep-original-url':'https://ai-gateway.vercel.sh'+route}
             body={'model':'typesafe-ai/jev','state':{},'questions':{'q':{'type':'noul','instructions':'matches?'}}}
             cases=[('/evaluation-model',headers,body),(route+'?target=evil',headers,body),
                    (route,{**headers,'Authorization':'Bearer wrong'},body),
-                   (route,{**headers,'x-codecompass-original-url':'https://evil.example'+route},body),
+                   (route,{**headers,'x-devgrep-original-url':'https://evil.example'+route},body),
                    (route,headers,{**body,'model':'other'}),(route,headers,{**body,'state':None}),
                    (route,headers,{**body,'questions':{'q':{'type':'boolean'}}}),(route,headers,[]),(route,headers,'invalid-json'),(route,{'Authorization':'Bearer token'},body)]
             with patch.object(broker,'CONFIG_PATH',str(config)),patch.object(broker,'TRACE_DIR',str(root/'traces')),patch.object(broker.urllib.request,'urlopen',side_effect=AssertionError('No forwarding')),contextlib.redirect_stdout(io.StringIO()):
@@ -561,13 +573,13 @@ class InstalledTests(unittest.TestCase):
                     thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
                     try:
                         client=http.client.HTTPConnection('127.0.0.1',server.server_port)
-                        client.request('POST',path,request_body,{'Authorization':'Bearer BROKER_TOKEN_SENTINEL','x-codecompass-original-url':origin+path})
+                        client.request('POST',path,request_body,{'Authorization':'Bearer BROKER_TOKEN_SENTINEL','x-devgrep-original-url':origin+path})
                         response=client.getresponse();self.assertEqual(response.status,200);self.assertEqual(response.read(),response_body);client.close()
                     finally:server.shutdown();server.server_close();thread.join()
                 self.assertEqual(forwarded['path'],path)
                 self.assertEqual(forwarded['body'],request_body)
                 self.assertEqual(forwarded['headers']['Authorization'],'Bearer REAL_KEY_SENTINEL')
-                self.assertNotIn('X-CodeCompass-Original-Url',forwarded['headers'])
+                self.assertNotIn('x-devgrep-original-url', {name.lower() for name in forwarded['headers']})
                 requests=list((root/'traces').glob('*.request.json'));responses=list((root/'traces').glob('*.response.json'))
                 self.assertEqual(requests[0].read_bytes(),request_body);self.assertEqual(responses[0].read_bytes(),response_body)
                 for file in requests+responses:

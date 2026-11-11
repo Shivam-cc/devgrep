@@ -1,6 +1,6 @@
 # Installed package cohort
 
-[The runner](installed.py) evaluates one frozen installed `cc` package against
+[The runner](installed.py) evaluates one frozen installed `devgrep` package against
 [the ten fixed Sol baselines](fixed-baselines.json). Baseline receipts, prompts,
 grades and billing are checked by hash; there is no baseline execution command.
 The two recorded baseline nonpasses remain nonpasses, including the retained
@@ -9,15 +9,15 @@ Pylint test-collection limitation.
 Preparation installs the packed npm artifact and dependencies once, then checks
 that same installation offline in every selected runtime image. Each check
 verifies the original source, agent versions and canonical packaged skill.
-The coding agent receives the archived prefix and runs the real `cc` executable
-on an internal network. The benchmark prompt explicitly invokes `$codecompass` and
+The coding agent receives the archived prefix and runs the real `dg` executable
+on an internal network. The benchmark prompt explicitly invokes `$devgrep` and
 requires a natural-language search before implementation discovery. An inventory
 command does not satisfy that requirement. Prompt changes require a new frozen
 baseline protocol; historical plans retain their archived runner.
 The public skill itself teaches CLI usage without prescribing a research workflow. Retrieval limits come
 from the frozen package's default policy.
 
-New preparations use the current canonical `skills/codecompass/SKILL.md` by default
+New preparations use the current canonical `skills/devgrep/SKILL.md` by default
 and reject a package carrying different skill bytes. Use `--skill` only for an
 explicitly identified comparison; existing frozen plans retain their original
 skill for reproducibility.
@@ -104,7 +104,7 @@ billing, aggregate reporting and exact body capture through a synthetic provider
 New schema-3 plans freeze a 900-second treatment **work** budget. The monitor uses
 host monotonic observation of native `command_execution` started/completed events.
 Only native command-execution events establish concurrent work for this clock.
-It excludes the union of standalone `cc` search waits only while no other command
+It excludes the union of standalone `dg` search waits only while no other command
 is active. Overlapping retrieval calls earn no double credit; unrelated concurrent
 commands count as work. Completion, cancellation, terminal turns and process EOF
 end credit. Nonterminal error/reconnect events do not end an active command.
@@ -115,8 +115,8 @@ attempt, even if the native process has already exited zero while output drains.
 Receipts retain work, credited retrieval and wall durations plus the disjoint
 credit intervals and native command IDs, so timing remains auditable.
 
-The recognizer accepts a direct installed `cc` search, including the native shell
-wrapper. It recognizes search exclusions and gives no credit to files, auth,
+The recognizer accepts a direct installed `dg` or `devgrep` search, including
+the native shell wrapper. It recognizes search exclusions and gives no credit to files, auth,
 doctor, cache, skill, help/version, compound commands, redirections or shell expansions. Ambiguous invocations count as work.
 Event-observation timestamps measure what the harness sees, not provider execution
 time; malformed timing events invalidate the timing evidence rather than inventing

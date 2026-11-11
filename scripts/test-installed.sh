@@ -3,14 +3,14 @@ set -eo pipefail
 repo_root="$(cd "$(dirname "$0")/.." && pwd)"
 context_dir="$repo_root"
 scratch=""
-image="codecompass-installed-test:$(id -u)-$$"
+image="devgrep-installed-test:$(id -u)-$$"
 cleanup() {
   if [[ -n "$scratch" ]]; then rm -rf "$scratch"; fi
   docker image rm "$image" >/dev/null 2>&1 || true
 }
 trap cleanup EXIT
 platform=()
-if [[ -n "${CODECOMPASS_TEST_PLATFORM:-}" ]]; then platform=(--platform "$CODECOMPASS_TEST_PLATFORM"); fi
+if [[ -n "${DEVGREP_TEST_PLATFORM:-}" ]]; then platform=(--platform "$DEVGREP_TEST_PLATFORM"); fi
 build_args=()
 package_input=""
 pattern=""
@@ -36,10 +36,10 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 if [[ -n "$package_input" ]]; then
-  scratch="$(mktemp -d "${TMPDIR:-/tmp}/codecompass-installed.XXXXXX")"
+  scratch="$(mktemp -d "${TMPDIR:-/tmp}/devgrep-installed.XXXXXX")"
   mkdir -p "$scratch/.package-input" "$scratch/test"
-  cp "$package_input" "$scratch/.package-input/codecompass.tgz"
-  cp "${CODECOMPASS_CANONICAL_SKILL:-$repo_root/skills/codecompass/SKILL.md}" "$scratch/.package-input/canonical-skill.md"
+  cp "$package_input" "$scratch/.package-input/devgrep.tgz"
+  cp "${DEVGREP_CANONICAL_SKILL:-$repo_root/skills/devgrep/SKILL.md}" "$scratch/.package-input/canonical-skill.md"
   cp "$repo_root/test/installed.test.mjs" "$repo_root/test/runtime.Dockerfile" "$scratch/test/"
   mkdir -p "$scratch/test/fixtures"
   cp "$repo_root/test/fixtures/skill-installer.mjs" "$repo_root/test/fixtures/provider-route.mjs" "$scratch/test/fixtures/"

@@ -1,15 +1,16 @@
 {
-  "name": "@codecompass/cli",
-  "version": "0.8.0",
+  "name": "devgrep",
+  "version": "1.0.0",
   "description": "Content-aware source retrieval for coding agents",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Shivam-cc/Code-Compass.git",
+    "url": "https://github.com/Shivam-cc/devgrep.git",
     "directory": "apps/cli"
   },
   "bin": {
-    "cc": "./dist/bin/index.js"
+    "devgrep": "./dist/bin/index.js",
+    "dg": "./dist/bin/index.js"
   },
   "files": [
     "dist"

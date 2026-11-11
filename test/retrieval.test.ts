@@ -11,7 +11,7 @@ import { createEvaluator, EvaluationFailure } from "../packages/core/src/evaluat
 testIfDocker(
   "hierarchical retrieval returns source from multiple files without uploading excluded data",
   async () => {
-    const root = await mkdtemp(join(tmpdir(), "cc-tree-"));
+    const root = await mkdtemp(join(tmpdir(), "devgrep-tree-"));
     const sent: string[] = [];
     const server = Bun.serve({
       port: 0,
@@ -74,7 +74,7 @@ testIfDocker(
 testIfDocker(
   "excluded paths are never uploaded or returned",
   async () => {
-    const root = await mkdtemp(join(tmpdir(), "cc-exclude-"));
+    const root = await mkdtemp(join(tmpdir(), "devgrep-exclude-"));
     const sent: string[] = [];
     const server = Bun.serve({
       port: 0,
@@ -133,7 +133,7 @@ testIfDocker(
 testIfDocker(
   "newly ignored evidence is withheld from follow-up requests and returned excerpts",
   async () => {
-    const root = await mkdtemp(join(tmpdir(), "cc-ignore-change-"));
+    const root = await mkdtemp(join(tmpdir(), "devgrep-ignore-change-"));
     const followups: Array<{ path?: string; selectedEvidence?: Array<{ path: string }> }> = [];
     let sawFirst!: () => void;
     const first = new Promise<void>((resolve) => {
@@ -190,7 +190,7 @@ testIfDocker(
 testIfDocker(
   "admitted text replaced with binary is incomplete rather than a healthy empty excerpt",
   async () => {
-    const root = await mkdtemp(join(tmpdir(), "cc-binary-change-"));
+    const root = await mkdtemp(join(tmpdir(), "devgrep-binary-change-"));
     let calls = 0;
     try {
       await writeFile(join(root, "event.ts"), "export function event() {return true;}\n");
@@ -222,7 +222,7 @@ testIfDocker(
 testIfDocker(
   "donors ignored during follow-up are absent from later evaluation requests",
   async () => {
-    const root = await mkdtemp(join(tmpdir(), "cc-followup-change-"));
+    const root = await mkdtemp(join(tmpdir(), "devgrep-followup-change-"));
     let calls = 0;
     let changed = false;
     let staleUploads = 0;
@@ -272,7 +272,7 @@ testIfDocker(
 
 testIfDocker("an aborted evaluator cannot return a previously cached answer", async () => {
   const { createEvaluationCache } = await import("../packages/core/src/cache");
-  const directory = await mkdtemp(join(tmpdir(), "cc-cache-abort-"));
+  const directory = await mkdtemp(join(tmpdir(), "devgrep-cache-abort-"));
   const controller = new AbortController();
   let calls = 0;
   const server = Bun.serve({
@@ -309,7 +309,7 @@ testIfDocker("an aborted evaluator cannot return a previously cached answer", as
 testIfDocker(
   "a file excluded during declaration selection is not uploaded in later groups",
   async () => {
-    const root = await mkdtemp(join(tmpdir(), "cc-group-change-"));
+    const root = await mkdtemp(join(tmpdir(), "devgrep-group-change-"));
     let declarations = 0;
     try {
       await writeFile(
@@ -344,7 +344,7 @@ testIfDocker(
 testIfDocker(
   "cancellation between declaration groups preserves already selected source",
   async () => {
-    const root = await mkdtemp(join(tmpdir(), "cc-partial-cancel-"));
+    const root = await mkdtemp(join(tmpdir(), "devgrep-partial-cancel-"));
     const controller = new AbortController();
     let groups = 0;
     try {
@@ -383,7 +383,7 @@ testIfDocker(
 testIfDocker(
   "file priority reaches stdout without changing relevance or excluding background documents",
   async () => {
-    const root = await mkdtemp(join(tmpdir(), "cc-priority-"));
+    const root = await mkdtemp(join(tmpdir(), "devgrep-priority-"));
     const roles: Array<{ query: string; path: string; preview: { text: string } }> = [];
     const server = Bun.serve({
       port: 0,
@@ -474,7 +474,7 @@ testIfDocker(
 testIfDocker(
   "test-body provider failure retains evidence and its diagnostic",
   async () => {
-    const root = await mkdtemp(join(tmpdir(), "cc-test-body-failure-"));
+    const root = await mkdtemp(join(tmpdir(), "devgrep-test-body-failure-"));
     try {
       await writeFile(
         join(root, "test_behavior.py"),
@@ -511,7 +511,7 @@ testIfDocker(
 testIfDocker(
   "terminal refinement failures stop later files without discarding first-pass evidence",
   async () => {
-    const root = await mkdtemp(join(tmpdir(), "cc-refinement-stop-"));
+    const root = await mkdtemp(join(tmpdir(), "devgrep-refinement-stop-"));
     try {
       for (const path of ["a.ts", "b.ts", "c.ts"])
         await writeFile(join(root, path), "export function event() { return true; }\n");

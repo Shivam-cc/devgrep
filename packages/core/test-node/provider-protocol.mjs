@@ -71,7 +71,7 @@ for (const [baseURL, modelId] of presets) {
     assert.deepEqual(Object.keys(observed.body.questions), ["q1", "q0"]);
     assert.equal(observed.path, `${new URL(baseURL).pathname}/systemone`);
     assert.equal(observed.headers.authorization, "Bearer synthetic-key");
-    assert.equal(observed.headers["x-codecompass-original-url"], `${baseURL}/systemone`);
+    assert.equal(observed.headers["x-devgrep-original-url"], `${baseURL}/systemone`);
     assert.match(observed.headers["content-type"], /^application\/json/);
     assert.deepEqual(result.answers, {
       q1: { type: "boolean", probability: 0.83 },
@@ -199,7 +199,7 @@ test("Node preload routes SDK-shaped fetches and rejects any other host", async 
   });
   // --import takes a URL; a bare Windows path such as C:\... is rejected as scheme "c:".
   const preload = new URL("../../../test/fixtures/provider-route.mjs", import.meta.url).href;
-  const options = { env: { CODECOMPASS_TEST_PROVIDER_ORIGIN: http.origin }, timeout: 5000 };
+  const options = { env: { DEVGREP_TEST_PROVIDER_ORIGIN: http.origin }, timeout: 5000 };
   const args = ["--import", preload, "--input-type=module", "-e"];
   const result = await run(
     process.execPath,

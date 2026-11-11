@@ -41,7 +41,7 @@ export function renderResult(
   const context = result.repositoryContext;
   const omittedCount = files.filter(({ omitted }) => omitted).length;
   const lines = [
-    `CodeCompass: ${files.length} relevant files${result.status !== "complete" ? "; discovery incomplete" : ""}.`,
+    `devgrep: ${files.length} relevant files${result.status !== "complete" ? "; discovery incomplete" : ""}.`,
     ...(files.length === 0 && result.status === "complete"
       ? ["No confident match found under this root."]
       : []),
@@ -148,7 +148,7 @@ export function renderInventory(inventory: Inventory, maxDirectories = 20): stri
     ([a, x], [b, y]) => y - x || a.localeCompare(b),
   );
   const lines = [
-    `CodeCompass files: ${files(inventory.files)} eligible (${size(inventory.bytes)})${inventory.status === "complete" ? "" : `; ${inventory.status === "interrupted" ? "interrupted" : "listing incomplete"}`}. No provider requests were made.`,
+    `devgrep files: ${files(inventory.files)} eligible (${size(inventory.bytes)})${inventory.status === "complete" ? "" : `; ${inventory.status === "interrupted" ? "interrupted" : "listing incomplete"}`}. No provider requests were made.`,
     "A search reads only what it explores; content checks may further exclude binary, credential-like, or over-16 MiB files.",
     ...(excluded.length
       ? [

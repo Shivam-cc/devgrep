@@ -34,15 +34,15 @@ jobs:
           $packed = npm pack ./apps/cli --json --ignore-scripts --pack-destination $env:RUNNER_TEMP | ConvertFrom-Json
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $tarball = Join-Path $env:RUNNER_TEMP $packed[0].filename
-          $prefix = Join-Path $env:RUNNER_TEMP 'codecompass install'
+          $prefix = Join-Path $env:RUNNER_TEMP 'devgrep install'
           npm install --global --prefix $prefix --ignore-scripts --no-audit --no-fund $tarball
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          & (Join-Path $prefix 'cc.cmd') --version
+          & (Join-Path $prefix 'devgrep.cmd') --version
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          "CODECOMPASS_TEST_CLI=$(Join-Path $prefix 'node_modules/@codecompass/cli/dist/bin/index.js')" >> $env:GITHUB_ENV
+          "DEVGREP_TEST_CLI=$(Join-Path $prefix 'node_modules/devgrep/dist/bin/index.js')" >> $env:GITHUB_ENV
       - name: Run portable suites against the installed CLI
         env:
-          CODECOMPASS_TEST_IN_DOCKER: "1"
+          DEVGREP_TEST_IN_DOCKER: "1"
         run: bun test --timeout 30000 ./apps/cli/test ./packages/core/test ./test/discovery.test.ts ./test/evaluator.test.ts ./test/retrieval.test.ts ./test/retrieval-freshness.test.ts
       - run: node --test packages/core/test-node/provider-protocol.mjs
       - run: node --test test/skill.test.mjs

@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
 test("skill installer forwards arguments and exit status through the platform launcher", async (t) => {
-  const home = await mkdtemp(join(tmpdir(), "codecompass-skill-"));
+  const home = await mkdtemp(join(tmpdir(), "devgrep-skill-"));
   t.after(() => rm(home, { recursive: true, force: true }));
   const bin = join(home, "installer with spaces");
   await mkdir(bin);
@@ -22,7 +22,7 @@ test("skill installer forwards arguments and exit status through the platform la
     { mode: 0o755 },
   );
   const cli =
-    process.env.CODECOMPASS_TEST_CLI ??
+    process.env.DEVGREP_TEST_CLI ??
     fileURLToPath(new URL("../apps/cli/dist/bin/index.js", import.meta.url));
   const result = await promisify(execFile)(
     process.execPath,
@@ -35,7 +35,7 @@ test("skill installer forwards arguments and exit status through the platform la
         XDG_CONFIG_HOME: home,
         XDG_CACHE_HOME: join(home, "cache"),
         PATH: [bin, dirname(process.execPath), process.env.PATH].join(delimiter),
-        CODECOMPASS_INSTALLER_EXIT: "7",
+        DEVGREP_INSTALLER_EXIT: "7",
       },
       timeout: 10000,
     },
@@ -50,9 +50,9 @@ test("skill installer forwards arguments and exit status through the platform la
     "--yes",
     "skills",
     "add",
-    "Shivam-cc/Code-Compass",
+    "Shivam-cc/devgrep",
     "--skill",
-    "codecompass",
+    "devgrep",
     "--agent",
     "claude-code",
     "--agent",

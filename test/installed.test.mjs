@@ -21,9 +21,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 // This suite intentionally cannot fall back to a checkout-local executable.
-const binary = process.env.CODECOMPASS_INSTALLED_BINARY;
-const packageDirectory = process.env.CODECOMPASS_INSTALLED_PACKAGE;
-const expectedSkill = process.env.CODECOMPASS_EXPECTED_SKILL;
+const binary = process.env.DEVGREP_INSTALLED_BINARY;
+const packageDirectory = process.env.DEVGREP_INSTALLED_PACKAGE;
+const expectedSkill = process.env.DEVGREP_EXPECTED_SKILL;
 assert.ok(
   binary && packageDirectory && expectedSkill,
   "Run scripts/test-installed.sh in the Node-only container",
@@ -63,7 +63,7 @@ async function context(t, mode = "healthy", executable = binary) {
   let expectedProvider = "vercel";
   let expectedKey = fixtureKey;
   const secrets = new Set([fixtureKey]);
-  const scratch = await mkdtemp(join(tmpdir(), "cc-installed-"));
+  const scratch = await mkdtemp(join(tmpdir(), "devgrep-installed-"));
   const tree = join(scratch, "repository");
   const home = join(scratch, "home");
   const config = join(scratch, "config");
@@ -106,7 +106,7 @@ async function context(t, mode = "healthy", executable = binary) {
   await writeFile(join(tree, "hidden.skip.py"), `value = "${forbidden}"\n`);
   await writeFile(join(tree, ".env"), `PRIVATE_VALUE=${forbidden}\n`);
   await writeFile(join(tree, "unrelated.md"), "This is an unrelated gardening document.\n");
-  const credentialDirectory = join(config, "codecompass");
+  const credentialDirectory = join(config, "devgrep");
   const credentials = join(credentialDirectory, "credentials.json");
   await mkdir(credentialDirectory, { mode: 0o700 });
   await writeFile(credentials, JSON.stringify({ provider: "vercel", apiKey: fixtureKey }) + "\n", {
@@ -117,7 +117,7 @@ async function context(t, mode = "healthy", executable = binary) {
       assert.equal(request.method, "POST");
       const preset = providers[expectedProvider];
       assert.equal(request.url, new URL(preset.url).pathname);
-      assert.equal(request.headers["x-codecompass-original-url"], preset.url);
+      assert.equal(request.headers["x-devgrep-original-url"], preset.url);
       assert.ok(
         request.headers.authorization === `Bearer ${expectedKey}`,
         "Saved key must authenticate the request",
@@ -240,13 +240,13 @@ async function context(t, mode = "healthy", executable = binary) {
     server.listen(0, "127.0.0.1", resolve);
   });
   const env = {
-    PATH: process.env.CODECOMPASS_TEST_PATH ?? "/opt/codecompass/bin:/usr/local/bin:/usr/bin:/bin",
+    PATH: process.env.DEVGREP_TEST_PATH ?? "/opt/devgrep/bin:/usr/local/bin:/usr/bin:/bin",
     HOME: home,
     XDG_CONFIG_HOME: config,
     XDG_CACHE_HOME: cache,
     TMPDIR: scratch,
-    NODE_OPTIONS: `--import=${process.env.CODECOMPASS_TEST_PROVIDER_PRELOAD ?? new URL("./fixtures/provider-route.mjs", import.meta.url).href}`,
-    CODECOMPASS_TEST_PROVIDER_ORIGIN: `http://127.0.0.1:${server.address().port}`,
+    NODE_OPTIONS: `--import=${process.env.DEVGREP_TEST_PROVIDER_PRELOAD ?? new URL("./fixtures/provider-route.mjs", import.meta.url).href}`,
+    DEVGREP_TEST_PROVIDER_ORIGIN: `http://127.0.0.1:${server.address().port}`,
   };
   const run = async (args, overrides = {}, head = false, input) => {
     if (input?.trim()) secrets.add(input.trim());
@@ -254,7 +254,7 @@ async function context(t, mode = "healthy", executable = binary) {
       const child = spawn(
         head ? "bash" : executable === binary ? binary : process.execPath,
         head
-          ? ["-o", "pipefail", "-c", '"$@" | head -200', "cc-pipe", executable, ...args]
+          ? ["-o", "pipefail", "-c", '"$@" | head -200', "devgrep-pipe", executable, ...args]
           : executable === binary
             ? args
             : [executable, ...args],
@@ -342,8 +342,8 @@ async function context(t, mode = "healthy", executable = binary) {
 
 function complete(result) {
   assert.equal(result.code, 0, result.stdout);
-  assert.match(result.stdout, /^CodeCompass: \d+ relevant files\.\n/);
-  assert.match(result.stdout, /^CodeCompass: 3 relevant files\.\n/);
+  assert.match(result.stdout, /^devgrep: \d+ relevant files\.\n/);
+  assert.match(result.stdout, /^devgrep: 3 relevant files\.\n/);
   for (const [branch, file] of branches) {
     assert.ok(
       result.stdout.includes(`"${branch}/nested/${file}"`),
@@ -400,7 +400,7 @@ test("installed runtime has no checkout or Python/Bun/compiler prerequisites", a
 test("installed local commands match the package without credentials", async (t) => {
   const fixture = await context(t);
   const metadata = JSON.parse(await readFile(join(packageDirectory, "package.json"), "utf8"));
-  assert.equal(metadata.name, "@codecompass/cli");
+  assert.equal(metadata.name, "devgrep");
   t.diagnostic(
     `Runtime ${process.version} ${process.platform}/${process.arch}; installed ${metadata.name}@${metadata.version}`,
   );
@@ -408,12 +408,12 @@ test("installed local commands match the package without credentials", async (t)
   const noCredentials = {};
   const help = await fixture.run(["--help"], noCredentials);
   assert.equal(help.code, 0, help.stdout);
-  assert.match(help.stdout, /Usage: cc /);
+  assert.match(help.stdout, /Usage: dg /);
   const version = await fixture.run(["--version"], noCredentials);
   assert.equal(version.code, 0, version.stdout);
   assert.equal(version.stdout, `${metadata.version}\n`);
   assert.equal(
-    await readFile(join(packageDirectory, "dist/skills/codecompass/SKILL.md"), "utf8"),
+    await readFile(join(packageDirectory, "dist/skills/devgrep/SKILL.md"), "utf8"),
     await readFile(expectedSkill, "utf8"),
   );
   assert.equal(fixture.requests.length, 0, "Local commands must not contact a provider");
@@ -437,9 +437,9 @@ test("skill command delegates installation to npx without credentials", async (t
     "--yes",
     "skills",
     "add",
-    "Shivam-cc/Code-Compass",
+    "Shivam-cc/devgrep",
     "--skill",
-    "codecompass",
+    "devgrep",
     "--agent",
     "codex",
     "--agent",
@@ -450,16 +450,16 @@ test("skill command delegates installation to npx without credentials", async (t
   assert.equal(fixture.requests.length, 0);
   const failed = await fixture.run(["skill"], {
     PATH: bin,
-    CODECOMPASS_INSTALLER_EXIT: "7",
+    DEVGREP_INSTALLER_EXIT: "7",
   });
   assert.equal(failed.code, 7, failed.stdout);
   assert.deepEqual(JSON.parse(await readFile(join(fixture.tree, "installed-skill.json"), "utf8")), [
     "--yes",
     "skills",
     "add",
-    "Shivam-cc/Code-Compass",
+    "Shivam-cc/devgrep",
     "--skill",
-    "codecompass",
+    "devgrep",
   ]);
   await rm(npx);
   const unavailable = await fixture.run(["skill"], { PATH: bin });
@@ -670,8 +670,8 @@ test("healthy negative evaluations produce a complete empty result", async (t) =
   const fixture = await context(t, "negative");
   const result = await fixture.run([query, fixture.tree, "--no-cache"]);
   assert.equal(result.code, 0, result.stdout);
-  assert.match(result.stdout, /^CodeCompass: \d+ relevant files\.\n/);
-  assert.match(result.stdout, /^CodeCompass: 0 relevant files\.\n/);
+  assert.match(result.stdout, /^devgrep: \d+ relevant files\.\n/);
+  assert.match(result.stdout, /^devgrep: 0 relevant files\.\n/);
   assert.ok(fixture.requests.length > 0);
 });
 
@@ -683,7 +683,7 @@ test("malformed provider answers preserve useful source and return incomplete ex
     "The installed SDK must actually receive malformed answers",
   );
   assert.equal(result.code, 2, result.stdout);
-  assert.match(result.stdout, /^CodeCompass: \d+ relevant files; discovery incomplete\.\n/);
+  assert.match(result.stdout, /^devgrep: \d+ relevant files; discovery incomplete\.\n/);
   assert.ok(result.stdout.includes("py-evidence-alpha:"));
   assert.ok(result.stdout.includes("py-evidence-gamma:"));
   assert.match(result.stdout, /^Issue: /m);
@@ -822,7 +822,7 @@ test("provider authentication failure stops immediately with fatal exit 1", asyn
   const result = await fixture.run([query]);
   assert.equal(result.code, 1);
   assert.equal(fixture.requests.length, 1);
-  assert.ok(!/^CodeCompass: \d+ relevant files\.\n/.test(result.stdout));
+  assert.ok(!/^devgrep: \d+ relevant files\.\n/.test(result.stdout));
   assert.ok(!result.stdout.includes("py-evidence-"));
 });
 
@@ -830,7 +830,7 @@ test("a transient navigation failure splits the batch and recovers installed ret
   const fixture = await context(t, "transient");
   const result = await fixture.run([query]);
   assert.equal(result.code, 0);
-  assert.match(result.stdout, /^CodeCompass: \d+ relevant files\.\n/);
+  assert.match(result.stdout, /^devgrep: \d+ relevant files\.\n/);
   const original = fixture.requests[0].body.state.items;
   assert.ok(original.length > 1);
   const recovered = fixture.requests.slice(1, 3).flatMap(({ body }) => body.state.items);
@@ -851,7 +851,7 @@ test("invalid navigation JSON remains incomplete without retrying or splitting",
   const fixture = await context(t, "invalid-json");
   const result = await fixture.run([query]);
   assert.equal(result.code, 2);
-  assert.match(result.stdout, /^CodeCompass: \d+ relevant files; discovery incomplete\.\n/);
+  assert.match(result.stdout, /^devgrep: \d+ relevant files; discovery incomplete\.\n/);
   const attempts = new Map();
   for (const { raw } of fixture.requests) attempts.set(raw, (attempts.get(raw) ?? 0) + 1);
   assert.ok(attempts.size > 0);
@@ -989,12 +989,12 @@ test(
     await writeFile(join(fixture.tree, "only.py"), source("only", "CollectorOnly"));
     const result = await fixture.run([query]);
     assert.equal(result.code, 2);
-    assert.match(result.stdout, /^CodeCompass: \d+ relevant files; discovery incomplete\.\n/);
+    assert.match(result.stdout, /^devgrep: \d+ relevant files; discovery incomplete\.\n/);
     assert.equal(fixture.requests.length, 2);
   },
 );
 
-test("a head -200 consumer closes the stdout pipe without leaving cc running", async (t) => {
+test("a head -200 consumer closes the stdout pipe without leaving devgrep running", async (t) => {
   const fixture = await context(t);
   await rm(fixture.tree, { recursive: true });
   await mkdir(fixture.tree);
@@ -1006,7 +1006,7 @@ test("a head -200 consumer closes the stdout pipe without leaving cc running", a
   await writeFile(join(fixture.tree, "only.py"), large);
   const result = await fixture.run([query], {}, true);
   assert.equal(result.code, 0);
-  assert.match(result.stdout, /^CodeCompass: \d+ relevant files\.\n/);
+  assert.match(result.stdout, /^devgrep: \d+ relevant files\.\n/);
   assert.equal(result.stdout.match(/\n/g)?.length, 200);
   assert.ok(!result.stdout.includes("End context."));
 });
@@ -1043,7 +1043,7 @@ test("source budget preserves every file and lead while explicitly omitting sour
 });
 
 test("missing or corrupt packaged parser assets fail closed without downloads", async (t) => {
-  const scratch = await mkdtemp(join(tmpdir(), "cc-missing-python-"));
+  const scratch = await mkdtemp(join(tmpdir(), "devgrep-missing-python-"));
   t.after(() => rm(scratch, { recursive: true, force: true }));
   for (const [asset, corrupt, extension] of [
     ["dist/bin/parser-worker.mjs", false],
@@ -1296,7 +1296,7 @@ test("installed saved credentials defeat conflicting environment and environment
   for (const args of [["doctor"], [query]]) {
     const result = await fixture.run(args, conflicts);
     assert.equal(result.code, 1, result.stdout);
-    assert.match(result.stdout, /cc auth/);
+    assert.match(result.stdout, /dg auth/);
     assert.ok(!result.stdout.includes("environment-"));
   }
   assert.equal(fixture.requests.length, before);

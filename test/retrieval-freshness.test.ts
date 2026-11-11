@@ -11,7 +11,7 @@ import { createEvaluationCache } from "../packages/core/src/cache";
 testIfDocker(
   "queued navigation never uploads source excluded after the first wave",
   async () => {
-    const root = await mkdtemp(join(tmpdir(), "cc-queued-freshness-"));
+    const root = await mkdtemp(join(tmpdir(), "devgrep-queued-freshness-"));
     const releases: Array<() => void> = [];
     let uploads = 0;
     const server = Bun.serve({
@@ -65,7 +65,7 @@ for (const mutation of ["ignored", "changed"] as const)
   testIfDocker(
     `final excerpts are invalidated when ${mutation} during role evaluation`,
     async () => {
-      const root = await mkdtemp(join(tmpdir(), "cc-final-freshness-"));
+      const root = await mkdtemp(join(tmpdir(), "devgrep-final-freshness-"));
       let role = false;
       const server = Bun.serve({
         port: 0,
@@ -115,7 +115,7 @@ for (const mutation of ["ignored", "changed"] as const)
 testIfDocker(
   "navigation HTTP retry revalidates its buffered source",
   async () => {
-    const root = await mkdtemp(join(tmpdir(), "cc-retry-freshness-"));
+    const root = await mkdtemp(join(tmpdir(), "devgrep-retry-freshness-"));
     let uploads = 0;
     const server = Bun.serve({
       port: 0,
@@ -155,7 +155,7 @@ for (const phase of ["selection", "role"] as const)
   testIfDocker(
     `${phase} HTTP retries withhold newly excluded source`,
     async () => {
-      const root = await mkdtemp(join(tmpdir(), "cc-phase-retry-"));
+      const root = await mkdtemp(join(tmpdir(), "devgrep-phase-retry-"));
       let uploads = 0;
       const server = Bun.serve({
         port: 0,
@@ -205,7 +205,7 @@ for (const size of [2, 4])
   testIfDocker(
     `split navigation retries retain healthy donors from ${size} items`,
     async () => {
-      const root = await mkdtemp(join(tmpdir(), "cc-split-freshness-"));
+      const root = await mkdtemp(join(tmpdir(), "devgrep-split-freshness-"));
       const uploads: string[][] = [];
       const server = Bun.serve({
         port: 0,
@@ -255,7 +255,7 @@ for (const donor of ["sample", "anchor"] as const)
   testIfDocker(
     `relationship retry revalidates its ${donor} donor`,
     async () => {
-      const root = await mkdtemp(join(tmpdir(), "cc-relation-freshness-"));
+      const root = await mkdtemp(join(tmpdir(), "devgrep-relation-freshness-"));
       let relationships = 0;
       const server = Bun.serve({
         port: 0,
@@ -320,7 +320,7 @@ for (const donor of ["sample", "anchor"] as const)
 testIfDocker(
   "additional-selection HTTP retry revalidates cross-file evidence donors",
   async () => {
-    const root = await mkdtemp(join(tmpdir(), "cc-evidence-retry-"));
+    const root = await mkdtemp(join(tmpdir(), "devgrep-evidence-retry-"));
     let attempts = 0;
     const server = Bun.serve({
       port: 0,
@@ -370,8 +370,8 @@ testIfDocker(
 );
 
 testIfDocker("cached navigation revalidates source after cache lookup", async () => {
-  const root = await mkdtemp(join(tmpdir(), "cc-cache-freshness-"));
-  const directory = await mkdtemp(join(tmpdir(), "cc-cache-answers-"));
+  const root = await mkdtemp(join(tmpdir(), "devgrep-cache-freshness-"));
+  const directory = await mkdtemp(join(tmpdir(), "devgrep-cache-answers-"));
   const cache = createEvaluationCache({ directory });
   const signal = new AbortController().signal;
   let calls = 0;

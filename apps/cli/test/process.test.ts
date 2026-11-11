@@ -8,7 +8,7 @@ import { testInDockerPosix, withCli } from "./cli";
 
 const execute = promisify(execFile);
 const cli =
-  process.env.CODECOMPASS_TEST_CLI ?? fileURLToPath(new URL("../dist/bin/index.js", import.meta.url));
+  process.env.DEVGREP_TEST_CLI ?? fileURLToPath(new URL("../dist/bin/index.js", import.meta.url));
 
 testInDockerPosix("a closed stdout pipe exits quietly", async () => {
   await withCli(async ({ home }) => {
@@ -48,7 +48,7 @@ testInDockerPosix("interactive auth hides input and exits 130 on interruption", 
       "cancel-provider",
       "cancel-key",
     ]) {
-      const file = join(home, "codecompass", "credentials.json");
+      const file = join(home, "devgrep", "credentials.json");
       const previous = mode === "save" ? undefined : await readFile(file, "utf8");
       const { stdout } = await execute(
         "python3",
@@ -136,7 +136,7 @@ finally:
         });
         expect(result.stdout).toContain("Custom endpoint (127.0.0.1:8080)");
       } else expect(await readFile(file, "utf8")).toBe(previous);
-      expect(await readdir(join(home, "codecompass"))).toEqual(["credentials.json"]);
+      expect(await readdir(join(home, "devgrep"))).toEqual(["credentials.json"]);
     }
   });
 });

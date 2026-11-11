@@ -2,9 +2,9 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { releaseIdentity } from "../scripts/validate-release.mjs";
 const metadata = {
-  name: "@codecompass/cli",
+  name: "devgrep",
   version: "1.2.3",
-  bin: { cc: "./dist/bin/index.js" },
+  bin: { devgrep: "./dist/bin/index.js", dg: "./dist/bin/index.js" },
   publishConfig: { access: "public" },
   license: "MIT",
   engines: { node: ">=22" },
@@ -12,7 +12,7 @@ const metadata = {
 };
 test("release tags select the authored version and keep prereleases off latest", () => {
   assert.deepEqual(releaseIdentity(metadata, "v1.2.3"), {
-    name: "@codecompass/cli",
+    name: "devgrep",
     version: "1.2.3",
     distTag: "latest",
   });
@@ -26,6 +26,7 @@ test("release tags select the authored version and keep prereleases off latest",
     [{ ...metadata, version: "1.2.3-01" }, "v1.2.3-01"],
     [{ ...metadata, name: "codecompass" }, "v1.2.3"],
     [{ ...metadata, bin: { codecompass: "./dist/bin/index.js" } }, "v1.2.3"],
+    [{ ...metadata, bin: { devgrep: "./dist/bin/index.js" } }, "v1.2.3"],
   ])
     assert.throws(() => releaseIdentity(value, tag));
 });
@@ -34,7 +35,7 @@ test("bundled notices retain emitted dependency licenses and exclude unbundled m
   const { mkdtemp, mkdir, writeFile, rm } = await import("node:fs/promises");
   const { tmpdir } = await import("node:os");
   const { join } = await import("node:path");
-  const root = await mkdtemp(join(tmpdir(), "cc-notices-"));
+  const root = await mkdtemp(join(tmpdir(), "devgrep-notices-"));
   t.after(() => rm(root, { recursive: true, force: true }));
   const dependency = join(root, "node_modules/example");
   await mkdir(dependency, { recursive: true });
@@ -82,12 +83,12 @@ test("archive validation rejects changed skill bytes and accidental source paylo
   const { execFile } = await import("node:child_process");
   const { promisify } = await import("node:util");
   const execute = promisify(execFile),
-    root = await mkdtemp(join(tmpdir(), "cc-release-"));
+    root = await mkdtemp(join(tmpdir(), "devgrep-release-"));
   t.after(() => rm(root, { recursive: true, force: true }));
   const files = {
     "apps/cli/package.json": JSON.stringify(metadata),
     LICENSE: "MIT canonical copyright\n",
-    "skills/codecompass/SKILL.md": "Use cc for unfamiliar code.\n",
+    "skills/devgrep/SKILL.md": "Use dg for unfamiliar code.\n",
     ...Object.fromEntries(
       ["parser-worker", "parser-helpers", "parser-preview", "parser-declarations"].map((name) => [
         `packages/core/src/${name}.mjs`,
@@ -117,12 +118,12 @@ test("archive validation rejects changed skill bytes and accidental source paylo
   const archiveRoot = join(root, "archive"),
     pkg = join(archiveRoot, "package");
   await mkdir(join(pkg, "dist/bin"), { recursive: true });
-  await mkdir(join(pkg, "dist/skills/codecompass"), { recursive: true });
+  await mkdir(join(pkg, "dist/skills/devgrep"), { recursive: true });
   await mkdir(join(pkg, "dist/assets/tree-sitter"), { recursive: true });
   for (const [from, to] of [
     ["apps/cli/package.json", "package.json"],
     ["LICENSE", "dist/LICENSE"],
-    ["skills/codecompass/SKILL.md", "dist/skills/codecompass/SKILL.md"],
+    ["skills/devgrep/SKILL.md", "dist/skills/devgrep/SKILL.md"],
     ...["parser-worker", "parser-helpers", "parser-preview", "parser-declarations"].map((name) => [
       `packages/core/src/${name}.mjs`,
       `dist/bin/${name}.mjs`,
@@ -160,10 +161,10 @@ test("archive validation rejects changed skill bytes and accidental source paylo
     join(root, "packages/core/assets/tree-sitter/tree-sitter-python.wasm"),
     join(pkg, "dist/assets/tree-sitter/tree-sitter-python.wasm"),
   );
-  await writeFile(join(pkg, "dist/skills/codecompass/SKILL.md"), "Changed skill");
+  await writeFile(join(pkg, "dist/skills/devgrep/SKILL.md"), "Changed skill");
   await pack();
   await assert.rejects(validateRelease(tarball, "v1.2.3", root), /canonical source/);
-  await cp(join(root, "skills/codecompass/SKILL.md"), join(pkg, "dist/skills/codecompass/SKILL.md"));
+  await cp(join(root, "skills/devgrep/SKILL.md"), join(pkg, "dist/skills/devgrep/SKILL.md"));
   await writeFile(join(pkg, "dist/assets/customer-data.json"), "Do not publish");
   await pack();
   await assert.rejects(validateRelease(tarball, "v1.2.3", root), /Unexpected published file/);

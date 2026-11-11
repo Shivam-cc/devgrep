@@ -1,11 +1,9 @@
 import React from 'react';
-import { C, MONO, SERIF, clamp, inOutExpo, lerp, outBack, outCubic, outExpo, prog, pulseAt } from './lib.ts';
+import { C, MONO, SERIF, clamp, inOutExpo, lerp, outBack, outCubic, outExpo, prog } from './lib.ts';
 import { H, INSTALL, W, lineEnd } from './timeline.ts';
 import { Header } from './hud.tsx';
 
-// Where the vermilion dot lands on the dotless j (tuned against a rendered frame).
-export const DOT = { x: -12, y: 52 };
-const WORD = 'ȷevgrep';
+const WORD = 'devgrep';
 const CHIP = { x: W / 2, y: 740, w: 300, h: 120 };
 const FONT = 340;
 
@@ -28,7 +26,7 @@ const Word: React.FC<{ t: number }> = ({ t }) => {
 export const Install: React.FC<{ t: number }> = ({ t }) => {
   const grow = inOutExpo(prog(t, INSTALL.iris, INSTALL.iris + 0.4));
   const fold = inOutExpo(prog(t, INSTALL.fold, INSTALL.fold + 0.45));
-  // dark window: grows out of the tower, later folds into the cc chip
+  // dark window: grows out of the tower, later folds into the dg chip
   const g = grow * (1 - fold);
   const x0 = 520 - 100;
   const y0 = 790;
@@ -47,8 +45,6 @@ export const Install: React.FC<{ t: number }> = ({ t }) => {
   const contentA = clamp((t - (INSTALL.iris + 0.35)) * 8) * (1 - clamp((t - INSTALL.fold) * 9));
   const chipA = clamp((t - (INSTALL.fold + 0.3)) * 10);
   const active = INSTALL.lines.findIndex((l, i) => t < (INSTALL.lines[i + 1]?.t ?? 1e9));
-  const dotP = prog(t, 20.2, 20.5);
-  const dotY = lerp(-300, 0, dotP * dotP) - (t > 20.5 ? Math.abs(Math.sin((t - 20.5) * 13)) * 60 * Math.exp(-(t - 20.5) / 0.2) : 0);
   const badge = outBack(prog(t, 20.75, 21.0), 2.6);
   const wmShow = t >= INSTALL.wordmark - 0.05;
   return (
@@ -59,20 +55,6 @@ export const Install: React.FC<{ t: number }> = ({ t }) => {
         <div style={{ position: 'absolute', left: -120, top: 130, width: W, display: 'flex', justifyContent: 'center' }}>
           <div style={{ position: 'relative' }}>
             <Word t={t} />
-            <div
-              style={{
-                position: 'absolute',
-                left: 24 + DOT.x,
-                top: 6 + DOT.y,
-                width: 84,
-                height: 84,
-                borderRadius: 42,
-                background: `radial-gradient(circle at 35% 30%, #ff8a6f, ${C.red} 55%, ${C.redDeep})`,
-                transform: `translateY(${dotY}px) scale(${1 + 0.25 * pulseAt(t, 20.5, 0.1)})`,
-                boxShadow: '0 12px 20px rgba(150,40,20,0.35)',
-                opacity: t > 20.2 ? 1 : 0,
-              }}
-            />
             <div
               style={{
                 position: 'absolute',
@@ -97,7 +79,7 @@ export const Install: React.FC<{ t: number }> = ({ t }) => {
           </div>
         </div>
       )}
-      {/* dark window / cc chip */}
+      {/* dark window / dg chip */}
       {grow > 0 && (
         <div
           style={{
@@ -114,7 +96,7 @@ export const Install: React.FC<{ t: number }> = ({ t }) => {
         >
           {fold > 0 && (
             <div style={{ position: 'absolute', inset: 0, opacity: chipA, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: MONO, fontWeight: 700, fontSize: 64, color: C.paper }}>
-              <span style={{ color: C.red, marginRight: 22 }}>❯</span>cc
+              <span style={{ color: C.red, marginRight: 22 }}>❯</span>dg
             </div>
           )}
         </div>

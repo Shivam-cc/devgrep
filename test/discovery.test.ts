@@ -29,7 +29,7 @@ async function writeWideTree(root: string, nested = false) {
 testIfDocker(
   "strong previews without useful source stop before the provider ceiling",
   async () => {
-    const root = await mkdtemp(join(tmpdir(), "cc-false-strong-"));
+    const root = await mkdtemp(join(tmpdir(), "devgrep-false-strong-"));
     try {
       await writeWideTree(root);
       let requests = 0;
@@ -64,7 +64,7 @@ for (const matchPath of ["match.ts", "group-0/match.ts"]) {
   testIfDocker(
     `a large source match at ${matchPath} can release a paused navigation budget`,
     async () => {
-      const root = await mkdtemp(join(tmpdir(), "cc-large-source-proof-"));
+      const root = await mkdtemp(join(tmpdir(), "devgrep-large-source-proof-"));
       try {
         await writeWideTree(root, matchPath === "match.ts");
         await writeFile(
@@ -113,7 +113,7 @@ for (const matchPath of ["match.ts", "group-0/match.ts"]) {
   );
 }
 testIfDocker("source confirmation reuses its judgments and preserves returned source", async () => {
-  const root = await mkdtemp(join(tmpdir(), "cc-source-reuse-"));
+  const root = await mkdtemp(join(tmpdir(), "devgrep-source-reuse-"));
   try {
     const first = "export function first() { return 1; }\n";
     const second = "export function second() { return 2; }\n";
@@ -151,7 +151,7 @@ testIfDocker("source confirmation reuses its judgments and preserves returned so
   }
 });
 testIfDocker("weak navigation scores stop without selecting or rendering files", async () => {
-  const root = await mkdtemp(join(tmpdir(), "cc-no-match-"));
+  const root = await mkdtemp(join(tmpdir(), "devgrep-no-match-"));
   try {
     for (let index = 0; index < 80; index++)
       await writeFile(join(root, `file-${index}.ts`), `export const value = ${index};\n`);
@@ -180,7 +180,7 @@ testIfDocker("weak navigation scores stop without selecting or rendering files",
 testIfDocker(
   "a wide weak-score tree stops at the navigation budget",
   async () => {
-    const root = await mkdtemp(join(tmpdir(), "cc-weak-budget-"));
+    const root = await mkdtemp(join(tmpdir(), "devgrep-weak-budget-"));
     try {
       await writeWideTree(root);
       let calls = 0;
@@ -212,7 +212,7 @@ for (const outcome of ["strong", "preview", "interrupted"] as const)
   testIfDocker(
     `a late ${outcome} response settles paused weak navigation`,
     async () => {
-      const root = await mkdtemp(join(tmpdir(), "cc-late-strong-"));
+      const root = await mkdtemp(join(tmpdir(), "devgrep-late-strong-"));
       try {
         await writeWideTree(root);
         let calls = 0;
@@ -295,7 +295,7 @@ for (const outcome of ["strong", "preview", "interrupted"] as const)
   );
 
 testIfDocker("a small set of weak leads remains available", async () => {
-  const root = await mkdtemp(join(tmpdir(), "cc-weak-lead-"));
+  const root = await mkdtemp(join(tmpdir(), "devgrep-weak-lead-"));
   try {
     await writeFile(join(root, "lead.ts"), "export function answer() { return true; }\n");
     await writeFile(join(root, "other.ts"), "export function unrelated() { return false; }\n");
@@ -324,7 +324,7 @@ testIfDocker("a small set of weak leads remains available", async () => {
 testIfDocker(
   "a strong lead preserves weak leads in a wide navigation level",
   async () => {
-    const root = await mkdtemp(join(tmpdir(), "cc-strong-and-weak-"));
+    const root = await mkdtemp(join(tmpdir(), "devgrep-strong-and-weak-"));
     try {
       for (let index = 0; index < 80; index++)
         await writeFile(join(root, `file-${index}.ts`), `export const value = ${index};\n`);
@@ -353,7 +353,7 @@ testIfDocker(
 );
 
 testIfDocker("shallow lookahead classifies file previews before admitting files", async () => {
-  const root = await mkdtemp(join(tmpdir(), "cc-folder-gate-"));
+  const root = await mkdtemp(join(tmpdir(), "devgrep-folder-gate-"));
   try {
     for (const name of ["useful", "unrelated"]) {
       await mkdir(join(root, name));
@@ -385,7 +385,7 @@ testIfDocker("shallow lookahead classifies file previews before admitting files"
   }
 });
 testIfDocker("relationship judgments bind each directory and file to its own source", async () => {
-  const root = await mkdtemp(join(tmpdir(), "cc-bound-relationship-"));
+  const root = await mkdtemp(join(tmpdir(), "devgrep-bound-relationship-"));
   try {
     await writeFile(join(root, "Anchor.py"), "class Anchor:\n    def run(self): return True\n");
     for (const directory of ["versions/implementations", "versions/misc"])
@@ -541,7 +541,7 @@ async function trajectory(
 testIfDocker(
   "hierarchical discovery batches files and revisits related directories",
   async () => {
-    const root = await mkdtemp(join(tmpdir(), "cc-discovery-"));
+    const root = await mkdtemp(join(tmpdir(), "devgrep-discovery-"));
     try {
       await writeFile(
         join(root, "Anchor.py"),
@@ -581,7 +581,7 @@ testIfDocker(
 testIfDocker(
   "computed discovery preserves directory entry, metadata and escaped-sample caps",
   async () => {
-    const root = await mkdtemp(join(tmpdir(), "cc-preview-caps-"));
+    const root = await mkdtemp(join(tmpdir(), "devgrep-preview-caps-"));
     try {
       await writeFile(
         join(root, "Anchor.py"),
@@ -612,7 +612,7 @@ testIfDocker(
 testIfDocker(
   "relationship discovery follows controlled provider completion order",
   async () => {
-    const root = await mkdtemp(join(tmpdir(), "cc-completion-order-"));
+    const root = await mkdtemp(join(tmpdir(), "devgrep-completion-order-"));
     try {
       await writeFile(
         join(root, "Anchor.py"),
@@ -643,7 +643,7 @@ for (const fault of ["split-once", "split-exhausted", "rate-limit"] as const) {
   testIfDocker(
     `navigation ${fault} reports the correct completion status`,
     async () => {
-      const root = await mkdtemp(join(tmpdir(), "cc-navigation-fault-"));
+      const root = await mkdtemp(join(tmpdir(), "devgrep-navigation-fault-"));
       try {
         await writeFile(
           join(root, "Anchor.py"),
@@ -662,7 +662,7 @@ for (const fault of ["split-once", "split-exhausted", "rate-limit"] as const) {
 testIfDocker(
   "split halves append to the same queue and recovered parents do not mark incomplete",
   async () => {
-    const root = await mkdtemp(join(tmpdir(), "cc-split-queue-"));
+    const root = await mkdtemp(join(tmpdir(), "devgrep-split-queue-"));
     try {
       for (const name of ["a", "b", "c", "d", "e"])
         await writeFile(join(root, `${name}.txt`), `${name} source\n`);
@@ -720,7 +720,7 @@ testIfDocker(
 testIfDockerPosix(
   "unavailable directory previews are skipped rather than classified as empty metadata",
   async () => {
-    const root = await mkdtemp(join(tmpdir(), "cc-preview-unavailable-"));
+    const root = await mkdtemp(join(tmpdir(), "devgrep-preview-unavailable-"));
     const blocked = join(root, "src/blocked");
     try {
       await writeFile(
@@ -747,7 +747,7 @@ for (const [extension, declaration] of [
   testIfDocker(
     `${extension} negative preview does not trigger an exhaustive source scan`,
     async () => {
-      const root = await mkdtemp(join(tmpdir(), "cc-late-source-"));
+      const root = await mkdtemp(join(tmpdir(), "devgrep-late-source-"));
       try {
         await writeFile(
           join(root, `engine.${extension}`),
@@ -799,7 +799,7 @@ for (const [extension, declaration] of [
 testIfDocker(
   "long queries can discover files whose complete preview does not fit",
   async () => {
-    const root = await mkdtemp(join(tmpdir(), "cc-long-query-"));
+    const root = await mkdtemp(join(tmpdir(), "devgrep-long-query-"));
     try {
       await writeFile(
         join(root, "engine.c"),
