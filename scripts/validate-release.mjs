@@ -21,7 +21,11 @@ export function releaseIdentity(metadata, tag) {
     throw new Error("Set an intentional release version; 0.0.0 is a development checkpoint");
   if (tag !== `v${version}`) throw new Error("Tag must equal v plus the CLI package version");
   if (metadata.name !== "devgrep") throw new Error("Release package must be devgrep");
-  if (metadata.bin?.devgrep !== "./dist/bin/index.js" || metadata.bin?.dg !== "./dist/bin/index.js" || Object.keys(metadata.bin).length !== 2)
+  if (
+    metadata.bin?.devgrep !== "./dist/bin/index.js" ||
+    metadata.bin?.dg !== "./dist/bin/index.js" ||
+    Object.keys(metadata.bin).length !== 2
+  )
     throw new Error("Release must expose exactly the devgrep and dg executables");
   if (metadata.private || metadata.publishConfig?.access !== "public")
     throw new Error("Release package must be public");

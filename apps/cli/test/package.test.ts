@@ -70,13 +70,8 @@ testInDocker(
       expect(help.stderr).toBe("");
       expect(help.stdout).toContain('Usage: dg "question" [root]');
       expect(
-        await readFile(
-          join(prefix, "node_modules/devgrep/dist/skills/devgrep/SKILL.md"),
-          "utf8",
-        ),
-      ).toBe(
-        await readFile(new URL("../../../skills/devgrep/SKILL.md", import.meta.url), "utf8"),
-      );
+        await readFile(join(prefix, "node_modules/devgrep/dist/skills/devgrep/SKILL.md"), "utf8"),
+      ).toBe(await readFile(new URL("../../../skills/devgrep/SKILL.md", import.meta.url), "utf8"));
       const manifest = JSON.parse(
         await readFile(join(prefix, "node_modules/devgrep/package.json"), "utf8"),
       );

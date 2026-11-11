@@ -10,6 +10,11 @@
     "test/reference/manifest.json",
     "test/parser/fixtures/**",
     "specs/done/codecompass/assets/**",
-    "skills/**"
+    "skills/**",
+    "specs/done/**",
+    "video/**",
+    "specs/go-rust-parsing/RESULTS.md",
+    "specs/go-rust-parsing/*.json",
+    "specs/tree-sitter/RESULTS.md"
   ]
 }
