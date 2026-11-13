@@ -9,7 +9,7 @@
     "test/reference/corpus.json",
     "test/reference/manifest.json",
     "test/parser/fixtures/**",
-    "specs/done/codecompass/assets/**",
+    "specs/done/devgrep/assets/**",
     "skills/**",
     "specs/done/**",
     "video/**",

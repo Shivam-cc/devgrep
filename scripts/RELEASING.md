@@ -5,7 +5,7 @@ matching `vVERSION` tag. The development version `0.0.0` is not publishable thro
 this workflow. Stable versions publish to `latest`; prereleases publish to `next`.
 The package is `devgrep`, and its executables are `devgrep` and `dg`.
 
-Review the [recorded quality decision](../specs/done/codecompass/README.md) and
+Review the [recorded quality decision](../specs/done/devgrep/README.md) and
 supported-runtime evidence before requesting a release. Implementation closure
 is not a claim that the original numerical quality gate passed. Ubuntu CI is not native macOS evidence and does not run paid
 model evaluations. The root `bun run verify` command is the common deterministic

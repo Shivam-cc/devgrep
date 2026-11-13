@@ -23,7 +23,7 @@ No model calls, baseline reruns, or result recomputation accompanied preservatio
   preserve alternatives, including failed and superseded experiments. Old model,
   timing, output and status statements describe their own studies, not the release.
 - [Retrieval lessons](architecture-lessons.md) and the
-  [implementation record](../../../specs/done/codecompass/README.md) own the synthesis
+  [implementation record](../../../specs/done/devgrep/README.md) own the synthesis
   and final product evidence, including the failed original quality gates.
 
 The snapshot is source history, not a promise that every old experiment runs from

@@ -6,9 +6,9 @@ metrics as the deciding evidence: useful starting context can be sufficient even
 when the caller still needs ordinary reads, and high source coverage does not
 prove a correct patch.
 
-The completed [decision map](../specs/done/codecompass/map.md) owns user constraints;
-the [implementation record](../specs/done/codecompass/README.md) owns closure and measured
-limits. [Reference research](../specs/done/codecompass/research.md) identifies the frozen
+The completed [decision map](../specs/done/devgrep/map.md) owns user constraints;
+the [implementation record](../specs/done/devgrep/README.md) owns closure and measured
+limits. [Reference research](../specs/done/devgrep/research.md) identifies the frozen
 winner and retained official evidence. Earlier personal-repository pilot records
 remain local historical material, not portable product validation or supported
 evaluation entry points.
